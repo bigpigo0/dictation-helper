@@ -7,6 +7,7 @@
 
   <!-- Pinyin library (Mandarin Pinyin). Online CDN; for offline, download and use local file instead. -->
   <script src="https://unpkg.com/pinyin-pro@3.28.0/dist/index.js"></script>
+  <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -98,6 +99,8 @@
         <div class="miniActions">
           <button class="miniBtn" id="print">Print</button>
           <button class="miniBtn" id="testPinyin">Test pinyin</button>
+          <button class="miniBtn" id="importImage">Import image</button>
+          <input id="imageInput" type="file" accept="image/*" hidden />
         </div>
       </div>
 
@@ -155,6 +158,7 @@
       stop: "停止",
       print: "列印順序",
       testPinyin: "測試拼音",
+      importImage: "圖片匯入",
       placeholder: "例如：\n顯著\n變焦鏡頭\n發售",
       // Status states
       ready: "準備就緒",
@@ -167,7 +171,13 @@
       needWords: "請先輸入詞語",
       noSpeechApi: "此瀏覽器不支援語音。請用 Chrome / Edge。",
       pinyinOff: "拼音 OFF（可能離線/被擋）。請確保可連網或用本機 pinyin-pro.min.js",
-      pinyinTest: (w, py) => `拼音測試：${w} → ${py}`
+      pinyinTest: (w, py) => `拼音測試：${w} → ${py}`,
+      ocrReading: "正在辨識圖片文字…",
+      ocrProgress: (pct) => `OCR 辨識中 ${pct}%`,
+      ocrEmpty: "未能從圖片讀到文字",
+      ocrDone: "已從圖片匯入文字（保留原本排版）",
+      ocrNoApi: "OCR 載入失敗，請檢查網絡",
+      ocrFailed: "圖片辨識失敗，請換另一張較清晰圖片"
     },
     "zh-Hans": {
       title: "中文听写",
@@ -190,6 +200,7 @@
       stop: "停止",
       print: "打印顺序",
       testPinyin: "测试拼音",
+      importImage: "图片导入",
       placeholder: "例如：\n显著\n变焦镜头\n发售",
       ready: "准备就绪",
       speaking: "朗读中",
@@ -200,7 +211,13 @@
       needWords: "请先输入词语",
       noSpeechApi: "此浏览器不支持语音。请用 Chrome / Edge。",
       pinyinOff: "拼音 OFF（可能离线/被拦）。请确保可联网或用本机 pinyin-pro.min.js",
-      pinyinTest: (w, py) => `拼音测试：${w} → ${py}`
+      pinyinTest: (w, py) => `拼音测试：${w} → ${py}`,
+      ocrReading: "正在识别图片文字…",
+      ocrProgress: (pct) => `OCR 识别中 ${pct}%`,
+      ocrEmpty: "未能从图片读取到文字",
+      ocrDone: "已从图片导入文字（保留原始排版）",
+      ocrNoApi: "OCR 加载失败，请检查网络",
+      ocrFailed: "图片识别失败，请换更清晰的图片"
     },
     "en": {
       title: "Dictation Coach",
@@ -223,6 +240,7 @@
       stop: "Stop",
       print: "Print order",
       testPinyin: "Test pinyin",
+      importImage: "Import image",
       placeholder: "Example:\n顯著\n變焦鏡頭\n發售",
       ready: "Ready",
       speaking: "Speaking",
@@ -233,7 +251,13 @@
       needWords: "Please enter words first",
       noSpeechApi: "Speech not supported. Use Chrome / Edge.",
       pinyinOff: "Pinyin OFF (offline / blocked). Use online or local pinyin-pro.min.js",
-      pinyinTest: (w, py) => `Pinyin test: ${w} → ${py}`
+      pinyinTest: (w, py) => `Pinyin test: ${w} → ${py}`,
+      ocrReading: "Reading text from image...",
+      ocrProgress: (pct) => `OCR in progress ${pct}%`,
+      ocrEmpty: "No text detected from image",
+      ocrDone: "Imported text from image (original layout preserved)",
+      ocrNoApi: "OCR failed to load. Check your network.",
+      ocrFailed: "Image OCR failed. Try a clearer image."
     }
   };
 
@@ -262,6 +286,8 @@
   const btnStop = document.getElementById('stop');
   const btnPrint = document.getElementById('print');
   const btnTestPinyin = document.getElementById('testPinyin');
+  const btnImportImage = document.getElementById('importImage');
+  const imageInput = document.getElementById('imageInput');
 
   const shuffleSwitch = document.getElementById('shuffleSwitch');
 
@@ -316,6 +342,7 @@
 
     btnPrint.textContent = dict.print;
     btnTestPinyin.textContent = dict.testPinyin;
+    btnImportImage.textContent = dict.importImage;
 
     elWords.placeholder = dict.placeholder;
 
@@ -349,6 +376,12 @@
 
   function parseWords(text){
     return text.split(/\s+/).map(s => s.trim()).filter(Boolean);
+  }
+
+  function ocrLanguage(){
+    if (currentLang === "zh-Hant") return "chi_tra";
+    if (currentLang === "zh-Hans") return "chi_sim";
+    return "eng";
   }
 
   function shuffle(arr){
@@ -664,6 +697,54 @@
       return;
     }
     setStatusText(t().pinyinTest(sample, pinyinOf(sample)));
+  });
+
+  btnImportImage.addEventListener('click', () => {
+    imageInput.value = "";
+    imageInput.click();
+  });
+
+  imageInput.addEventListener('change', async () => {
+    const file = imageInput.files?.[0];
+    if (!file) return;
+    if (!window.Tesseract || typeof window.Tesseract.recognize !== "function"){
+      setStatusText(t().ocrNoApi);
+      return;
+    }
+
+    try{
+      setStatusText(t().ocrReading);
+      const { data } = await window.Tesseract.recognize(file, ocrLanguage(), {
+        logger: (m) => {
+          if (m?.status === "recognizing text" && Number.isFinite(m.progress)) {
+            const pct = Math.max(0, Math.min(100, Math.round(m.progress * 100)));
+            setStatusText(t().ocrProgress(pct));
+          }
+        }
+      });
+
+      const importedText = String(data?.text || "").replace(/\r/g, "\n").trim();
+      if (!importedText){
+        setStatusText(t().ocrEmpty);
+        return;
+      }
+
+      const existingText = elWords.value || "";
+      elWords.value = existingText.trim()
+        ? `${existingText.replace(/\s*$/, "")}\n${importedText}`
+        : importedText;
+
+      if (!running){
+        const words = parseWords(elWords.value);
+        plannedOrder = words.length ? buildPlan(words) : [];
+        spokenOrder = [];
+        renderOrder();
+      }
+      setStatusText(t().ocrDone);
+    } catch (err){
+      console.error(err);
+      setStatusText(t().ocrFailed);
+    }
   });
 
   // ---------- init ----------
