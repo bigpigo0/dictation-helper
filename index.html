@@ -1,0 +1,1172 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover" />
+  <title>Dictation Coach</title>
+
+  <!-- Pinyin library (Mandarin Pinyin). Online CDN; for offline, download and use local file instead. -->
+  <script src="https://unpkg.com/pinyin-pro@3.16.3/dist/pinyin-pro.min.js"></script>
+
+  <style>
+    :root{
+      --bg0: #0b1020;
+      --bg1: #0c1633;
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.10);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.68);
+      --muted2: rgba(255,255,255,0.50);
+      --shadow: 0 18px 50px rgba(0,0,0,0.40);
+
+      --brand: #7c5cff;
+      --brand2:#2dd4bf;
+      --danger:#ff4d6d;
+      --ok:#34d399;
+
+      --radius: 18px;
+      --radius2: 14px;
+
+      --btnH: 48px;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root{
+        --bg0: #f6f7fb;
+        --bg1: #eef1ff;
+        --card: #ffffff;
+        --card2: #f5f7ff;
+        --border: rgba(18, 25, 38, 0.10);
+        --text: rgba(18, 25, 38, 0.92);
+        --muted: rgba(18, 25, 38, 0.68);
+        --muted2: rgba(18, 25, 38, 0.52);
+        --shadow: 0 14px 40px rgba(18,25,38,0.10);
+      }
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans TC", "PingFang TC", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 520px at 15% -10%, rgba(124,92,255,0.35), transparent 55%),
+        radial-gradient(860px 540px at 110% 15%, rgba(45,212,191,0.20), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+      min-height:100vh;
+    }
+
+    .wrap{
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 18px 14px calc(118px + env(safe-area-inset-bottom));
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .brandRow{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .logo{
+      width:40px;height:40px;border-radius:14px;
+      background: linear-gradient(135deg, rgba(124,92,255,1), rgba(45,212,191,0.85));
+      box-shadow: 0 14px 26px rgba(0,0,0,0.22);
+      flex: 0 0 auto;
+    }
+
+    h1{
+      margin:0;
+      font-size: 18px;
+      letter-spacing: 0.2px;
+      line-height: 1.15;
+    }
+    .subtitle{
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .rightTop{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:10px;
+      min-width: 210px;
+    }
+
+    .chips{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .chip{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--muted);
+      display:flex;
+      align-items:center;
+      gap:6px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      user-select:none;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background: var(--danger);
+      box-shadow: 0 0 0 3px rgba(255,77,109,0.18);
+    }
+    .dot.ok{
+      background: var(--ok);
+      box-shadow: 0 0 0 3px rgba(52,211,153,0.18);
+    }
+
+    .seg{
+      display:flex;
+      gap:6px;
+      padding: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .seg button{
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 850;
+      padding: 8px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 13px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .seg button.active{
+      color: var(--text);
+      background: linear-gradient(135deg, rgba(124,92,255,0.95), rgba(124,92,255,0.70));
+      border-color: rgba(124,92,255,0.40);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.14);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 900px){
+      .grid{
+        grid-template-columns: 1.25fr 0.75fr;
+        align-items:start;
+      }
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .cardHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+    .cardTitle{
+      margin:0;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .hint{
+      color: var(--muted2);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    textarea{
+      width:100%;
+      min-height: 180px;
+      border-radius: var(--radius2);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding: 12px;
+      font-size: 16px;
+      line-height: 1.45;
+      outline:none;
+    }
+    textarea::placeholder{ color: var(--muted2); }
+
+    .formRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    @media (min-width: 580px){
+      .formRow{ grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    .field label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0 0 6px;
+      font-weight: 750;
+    }
+
+    input, select{
+      width:100%;
+      border-radius: var(--radius2);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding: 11px 12px;
+      font-size: 15px;
+      outline:none;
+      appearance: none;
+    }
+
+    /* Fix: dropdown options readable on Windows/Chrome (native popup often white) */
+    select option, select optgroup{
+      background: #fff !important;
+      color: #111 !important;
+    }
+
+    .toggleRow{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .switch{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      user-select:none;
+    }
+    .switchText{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .switchText b{
+      font-size: 13px;
+    }
+    .switchText span{
+      font-size: 12px;
+      color: var(--muted2);
+      font-weight: 650;
+    }
+
+    .iosSwitch{
+      width: 54px;
+      height: 32px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.08);
+      position: relative;
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
+      flex: 0 0 auto;
+    }
+    .iosSwitch.on{
+      background: rgba(52,211,153,0.35);
+      border-color: rgba(52,211,153,0.45);
+    }
+    .knob{
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.92);
+      position:absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 180ms ease;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.18);
+    }
+    .iosSwitch.on .knob{
+      transform: translateX(22px);
+    }
+
+    .nowCard{
+      margin-top: 12px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(124,92,255,0.35);
+      background:
+        linear-gradient(135deg, rgba(124,92,255,0.20), rgba(45,212,191,0.10));
+      padding: 12px;
+    }
+    .nowLabel{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 850;
+      margin-bottom: 6px;
+      letter-spacing: .2px;
+    }
+    .nowWord{
+      font-size: 30px;
+      font-weight: 950;
+      letter-spacing: 0.4px;
+      line-height: 1.15;
+      word-break: break-word;
+    }
+    .nowPinyin{
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 800;
+      min-height: 18px;
+    }
+
+    .progress{
+      margin-top: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid var(--border);
+      overflow:hidden;
+    }
+    .bar{
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--brand), var(--brand2));
+      border-radius: 999px;
+      transition: width 240ms ease;
+    }
+
+    .statusLine{
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .statusStrong{
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    .miniActions{
+      display:flex;
+      justify-content:flex-end;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+    }
+    .miniBtn{
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding: 10px 12px;
+      font-weight: 850;
+      font-size: 13px;
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .list{
+      margin: 0;
+      padding-left: 18px;
+    }
+    .list li{
+      margin: 10px 0;
+      line-height: 1.35;
+      color: var(--text);
+      font-weight: 800;
+    }
+    .list small{
+      display:block;
+      color: var(--muted);
+      font-weight: 750;
+      margin-top: 4px;
+    }
+
+    .footerNote{
+      margin-top: 10px;
+      color: var(--muted2);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    /* Sticky bottom control bar */
+    .controls{
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,0.22) 20%, rgba(0,0,0,0.35));
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 50;
+    }
+    @media (prefers-color-scheme: light){
+      .controls{
+        background: linear-gradient(180deg, transparent, rgba(246,247,251,0.70) 18%, rgba(246,247,251,0.96));
+      }
+    }
+
+    .controlsInner{
+      max-width: 1040px;
+      margin: 0 auto;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (min-width: 580px){
+      .controlsInner{
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+      }
+    }
+
+    .btn{
+      height: var(--btnH);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      font-weight: 950;
+      font-size: 15px;
+      cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 8px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.14);
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(124,92,255,0.98), rgba(124,92,255,0.70));
+      border-color: rgba(124,92,255,0.45);
+    }
+    .btn.ghost{
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+    }
+    .btn.danger{
+      background: linear-gradient(135deg, rgba(255,77,109,0.98), rgba(255,77,109,0.70));
+      border-color: rgba(255,77,109,0.45);
+    }
+    .btn:disabled{ opacity: 0.55; cursor:not-allowed; }
+
+    /* Print: show only #printArea */
+    @media print {
+      @page { margin: 14mm; }
+      body * { display: none !important; }
+      #printArea, #printArea * { display: block !important; visibility: visible !important; }
+      #printArea { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans TC", "PingFang TC", sans-serif; color:#000 !important; }
+      #printArea h1 { margin: 0 0 6mm 0; font-size: 18pt; }
+      #printArea .meta { font-size: 10pt; color:#333; margin-bottom: 6mm; }
+      #printArea ol { padding-left: 18px; margin: 0; }
+      #printArea li { margin: 3mm 0; font-size: 12pt; }
+      #printArea small { display:block !important; color:#444 !important; font-size: 10pt; margin-top: 1mm; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <div class="brandRow">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1 id="t_title">Dictation Coach</h1>
+            <div class="subtitle" id="t_subtitle">Enter words → Speak → Write → Show order (with pinyin)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rightTop">
+        <div class="seg" role="group" aria-label="Language">
+          <button class="langBtn" data-lang="zh-Hant">繁</button>
+          <button class="langBtn" data-lang="zh-Hans">簡</button>
+          <button class="langBtn" data-lang="en">Eng</button>
+        </div>
+
+        <div class="chips">
+          <div class="chip"><span id="pinyinDot" class="dot"></span><span id="pinyinChip">Pinyin: LOADING</span></div>
+          <div class="chip"><span id="voiceDot" class="dot"></span><span id="voiceChip">Voice: LOADING</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Left -->
+      <div class="card">
+        <div class="cardHeader">
+          <div class="cardTitle" id="t_wordsTitle">Word list</div>
+          <div class="hint" id="t_wordsHint">space / newline separated</div>
+        </div>
+
+        <textarea id="words" placeholder="Example:
+顯著
+變焦鏡頭
+發售"></textarea>
+
+        <div class="formRow">
+          <div class="field">
+            <label for="repeat" id="t_repeatLabel">Repeat</label>
+            <input id="repeat" type="number" min="1" value="2" />
+          </div>
+          <div class="field">
+            <label for="rate" id="t_rateLabel">Speech rate</label>
+            <input id="rate" type="number" min="0.5" max="2" step="0.1" value="1" />
+          </div>
+          <div class="field">
+            <label for="voice" id="t_voiceLabel">Voice</label>
+            <select id="voice"></select>
+          </div>
+        </div>
+
+        <!-- Shuffle toggle -->
+        <div class="toggleRow">
+          <div class="switch">
+            <div class="switchText">
+              <b id="t_shuffleTitle">Shuffle words</b>
+              <span id="t_shuffleDesc">Random order (OFF = follow input order)</span>
+            </div>
+          </div>
+          <div id="shuffleSwitch" class="iosSwitch on" role="switch" aria-checked="true" tabindex="0" title="Shuffle toggle">
+            <div class="knob"></div>
+          </div>
+        </div>
+
+        <!-- Now speaking -->
+        <div class="nowCard">
+          <div class="nowLabel" id="t_currentLabel">Now speaking</div>
+          <div class="nowWord" id="currentWord">—</div>
+          <div class="nowPinyin" id="currentPinyin"></div>
+
+          <div class="progress" aria-label="progress">
+            <div class="bar" id="bar"></div>
+          </div>
+
+          <div class="statusLine">
+            <div><span id="t_statusLabel">Status</span>：<span class="statusStrong" id="status"></span></div>
+            <div><span id="counter">0 / 0</span></div>
+          </div>
+        </div>
+
+        <div class="miniActions">
+          <button class="miniBtn" id="print">Print</button>
+          <button class="miniBtn" id="testPinyin">Test pinyin</button>
+        </div>
+      </div>
+
+      <!-- Right -->
+      <div class="card">
+        <div class="cardHeader">
+          <div class="cardTitle" id="t_orderTitle">Speaking order</div>
+          <div class="hint" id="t_orderHint">Shown after finish / stop</div>
+        </div>
+
+        <ol class="list" id="order"></ol>
+
+        <div class="footerNote" id="t_footerNote">
+          Tip: If Pinyin shows OFF, the CDN may be blocked/offline. Download pinyin-pro.min.js and reference it locally for offline use.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sticky controls -->
+  <div class="controls">
+    <div class="controlsInner">
+      <button class="btn primary" id="start"><span id="t_start">Start</span></button>
+      <button class="btn ghost" id="pause"><span id="t_pause">Pause</span></button>
+      <button class="btn ghost" id="resume"><span id="t_resume">Resume</span></button>
+      <button class="btn danger" id="stop"><span id="t_stop">Stop</span></button>
+    </div>
+  </div>
+
+  <!-- Print-only area -->
+  <div id="printArea"></div>
+
+<script>
+(() => {
+  // ---------- i18n ----------
+  const I18N = {
+    "zh-Hant": {
+      title: "中文默書",
+      subtitle: "輸入詞語 → 朗讀 → 小朋友寫字 → 顯示朗讀順序（含拼音）",
+      wordsTitle: "詞語清單",
+      wordsHint: "空格 / 換行分隔",
+      repeatLabel: "重複次數",
+      rateLabel: "語速",
+      voiceLabel: "語音 Voice",
+      shuffleTitle: "隨機排序",
+      shuffleDesc: "開啟 = 隨機；關閉 = 跟輸入次序",
+      currentLabel: "目前朗讀",
+      statusLabel: "狀態",
+      orderTitle: "朗讀順序",
+      orderHint: "完成後 / 停止後會顯示",
+      footerNote: "提示：如果 Pinyin 顯示 OFF，可能離線/網絡被擋。可下載 pinyin-pro.min.js 放同一資料夾離線使用。",
+      start: "開始",
+      pause: "暫停",
+      resume: "繼續",
+      stop: "停止",
+      print: "列印順序",
+      testPinyin: "測試拼音",
+      placeholder: "例如：\n顯著\n變焦鏡頭\n發售",
+      // Status states
+      ready: "準備就緒",
+      speaking: "朗讀中",
+      paused: "已暫停",
+      resumed: "繼續中",
+      stopped: "已停止",
+      done: "完成",
+      // Messages
+      needWords: "請先輸入詞語",
+      noSpeechApi: "此瀏覽器不支援語音。請用 Chrome / Edge。",
+      pinyinOff: "拼音 OFF（可能離線/被擋）。請確保可連網或用本機 pinyin-pro.min.js",
+      pinyinTest: (w, py) => `拼音測試：${w} → ${py}`
+    },
+    "zh-Hans": {
+      title: "中文听写",
+      subtitle: "输入词语 → 朗读 → 孩子书写 → 显示朗读顺序（含拼音）",
+      wordsTitle: "词语列表",
+      wordsHint: "空格 / 换行分隔",
+      repeatLabel: "重复次数",
+      rateLabel: "语速",
+      voiceLabel: "语音 Voice",
+      shuffleTitle: "随机排序",
+      shuffleDesc: "开启 = 随机；关闭 = 按输入顺序",
+      currentLabel: "当前朗读",
+      statusLabel: "状态",
+      orderTitle: "朗读顺序",
+      orderHint: "完成后 / 停止后会显示",
+      footerNote: "提示：如果拼音显示 OFF，可能离线/被拦。可下载 pinyin-pro.min.js 放同一文件夹离线使用。",
+      start: "开始",
+      pause: "暂停",
+      resume: "继续",
+      stop: "停止",
+      print: "打印顺序",
+      testPinyin: "测试拼音",
+      placeholder: "例如：\n显著\n变焦镜头\n发售",
+      ready: "准备就绪",
+      speaking: "朗读中",
+      paused: "已暂停",
+      resumed: "继续中",
+      stopped: "已停止",
+      done: "完成",
+      needWords: "请先输入词语",
+      noSpeechApi: "此浏览器不支持语音。请用 Chrome / Edge。",
+      pinyinOff: "拼音 OFF（可能离线/被拦）。请确保可联网或用本机 pinyin-pro.min.js",
+      pinyinTest: (w, py) => `拼音测试：${w} → ${py}`
+    },
+    "en": {
+      title: "Dictation Coach",
+      subtitle: "Enter words → Speak → Kids write → Show speaking order (with pinyin)",
+      wordsTitle: "Word list",
+      wordsHint: "Separated by spaces / new lines",
+      repeatLabel: "Repeat",
+      rateLabel: "Speech rate",
+      voiceLabel: "Voice",
+      shuffleTitle: "Shuffle words",
+      shuffleDesc: "ON = random; OFF = input order",
+      currentLabel: "Now speaking",
+      statusLabel: "Status",
+      orderTitle: "Speaking order",
+      orderHint: "Shown after finish / stop",
+      footerNote: "Tip: If Pinyin shows OFF, the CDN may be blocked/offline. Download pinyin-pro.min.js and reference it locally for offline use.",
+      start: "Start",
+      pause: "Pause",
+      resume: "Resume",
+      stop: "Stop",
+      print: "Print order",
+      testPinyin: "Test pinyin",
+      placeholder: "Example:\n顯著\n變焦鏡頭\n發售",
+      ready: "Ready",
+      speaking: "Speaking",
+      paused: "Paused",
+      resumed: "Resumed",
+      stopped: "Stopped",
+      done: "Done",
+      needWords: "Please enter words first",
+      noSpeechApi: "Speech not supported. Use Chrome / Edge.",
+      pinyinOff: "Pinyin OFF (offline / blocked). Use online or local pinyin-pro.min.js",
+      pinyinTest: (w, py) => `Pinyin test: ${w} → ${py}`
+    }
+  };
+
+  let currentLang = localStorage.getItem("dict_lang") || "zh-Hant";
+  function t(){ return I18N[currentLang] || I18N["zh-Hant"]; }
+
+  // ---------- elements ----------
+  const elWords = document.getElementById('words');
+  const elRepeat = document.getElementById('repeat');
+  const elRate = document.getElementById('rate');
+  const elVoice = document.getElementById('voice');
+  const elOrder = document.getElementById('order');
+  const elCounter = document.getElementById('counter');
+  const elBar = document.getElementById('bar');
+  const elCurrentWord = document.getElementById('currentWord');
+  const elCurrentPinyin = document.getElementById('currentPinyin');
+
+  const pinyinDot = document.getElementById('pinyinDot');
+  const pinyinChip = document.getElementById('pinyinChip');
+  const voiceDot = document.getElementById('voiceDot');
+  const voiceChip = document.getElementById('voiceChip');
+
+  const btnStart = document.getElementById('start');
+  const btnPause = document.getElementById('pause');
+  const btnResume = document.getElementById('resume');
+  const btnStop = document.getElementById('stop');
+  const btnPrint = document.getElementById('print');
+  const btnTestPinyin = document.getElementById('testPinyin');
+
+  const shuffleSwitch = document.getElementById('shuffleSwitch');
+
+  // ---------- state ----------
+  let running = false;
+  let cancelled = false;
+
+  let shuffleEnabled = (localStorage.getItem("dict_shuffle") ?? "1") === "1";
+
+  let plannedOrder = [];   // order for this session (shuffled or input order)
+  let spokenOrder = [];    // actual spoken sequence
+  let total = 0;
+
+  let statusKey = "ready";     // ready | speaking | paused | resumed | stopped | done
+  let statusOverride = "";     // custom message string
+
+  // ---------- helpers ----------
+  function setText(id, value){
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
+  function applyLang(){
+    const dict = t();
+    document.documentElement.lang = currentLang;
+
+    setText("t_title", dict.title);
+    setText("t_subtitle", dict.subtitle);
+
+    setText("t_wordsTitle", dict.wordsTitle);
+    setText("t_wordsHint", dict.wordsHint);
+
+    setText("t_repeatLabel", dict.repeatLabel);
+    setText("t_rateLabel", dict.rateLabel);
+    setText("t_voiceLabel", dict.voiceLabel);
+
+    setText("t_shuffleTitle", dict.shuffleTitle);
+    setText("t_shuffleDesc", dict.shuffleDesc);
+
+    setText("t_currentLabel", dict.currentLabel);
+
+    setText("t_statusLabel", dict.statusLabel);
+
+    setText("t_orderTitle", dict.orderTitle);
+    setText("t_orderHint", dict.orderHint);
+    setText("t_footerNote", dict.footerNote);
+
+    setText("t_start", dict.start);
+    setText("t_pause", dict.pause);
+    setText("t_resume", dict.resume);
+    setText("t_stop", dict.stop);
+
+    btnPrint.textContent = dict.print;
+    btnTestPinyin.textContent = dict.testPinyin;
+
+    elWords.placeholder = dict.placeholder;
+
+    // lang segmented active
+    document.querySelectorAll(".langBtn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.lang === currentLang);
+    });
+
+    // status re-render in new language
+    renderStatus();
+    renderOrder(); // keep list label/pinyin consistent
+  }
+
+  function renderStatus(){
+    const st = document.getElementById("status");
+    if (!st) return;
+    const dict = t();
+    st.textContent = statusOverride || dict[statusKey] || dict.ready || "Ready";
+  }
+
+  function setStatusKey(key){
+    statusOverride = "";
+    statusKey = key;
+    renderStatus();
+  }
+
+  function setStatusText(text){
+    statusOverride = text || "";
+    renderStatus();
+  }
+
+  function parseWords(text){
+    return text.split(/\s+/).map(s => s.trim()).filter(Boolean);
+  }
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function setCounter(i, n){
+    elCounter.textContent = `${i} / ${n}`;
+  }
+  function setProgress(i, n){
+    const pct = n ? Math.round((i / n) * 100) : 0;
+    elBar.style.width = `${pct}%`;
+  }
+
+  function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
+
+  // Pinyin lib (correct global)
+  function getPinyinLib(){
+    if (window.pinyinPro && typeof window.pinyinPro.pinyin === "function") return window.pinyinPro;
+    if (window.pinyinPro?.default && typeof window.pinyinPro.default.pinyin === "function") return window.pinyinPro.default;
+    return null;
+  }
+
+  function updatePinyinChip(){
+    const ok = !!getPinyinLib();
+    pinyinChip.textContent = `Pinyin: ${ok ? "ON" : "OFF"}`;
+    pinyinDot.className = "dot " + (ok ? "ok" : "");
+  }
+
+  function pinyinOf(word){
+    const lib = getPinyinLib();
+    const hasChinese = /[\u4e00-\u9fff]/.test(word);
+    if (!hasChinese || !lib) return "";
+    const arr = lib.pinyin(word, { toneType: "symbol", type: "array" });
+    return Array.isArray(arr) ? arr.join(" ") : String(arr || "");
+  }
+
+  // Voices
+  function getVoices(){
+    if (!('speechSynthesis' in window)) return [];
+    return window.speechSynthesis.getVoices() || [];
+  }
+
+  function loadVoiceOptions(){
+    const voices = getVoices();
+    elVoice.innerHTML = "";
+
+    if (!voices.length){
+      const opt = document.createElement('option');
+      opt.value = "-1";
+      opt.textContent = "（No voices detected / Use default）";
+      elVoice.appendChild(opt);
+      voiceChip.textContent = "Voice: EMPTY";
+      voiceDot.className = "dot";
+      return;
+    }
+
+    const list = voices.map((v, idx) => ({ v, idx }))
+      .sort((a, b) => {
+        const az = /^zh/i.test(a.v.lang) ? 0 : 1;
+        const bz = /^zh/i.test(b.v.lang) ? 0 : 1;
+        return az - bz;
+      });
+
+    for (const item of list){
+      const opt = document.createElement('option');
+      opt.value = String(item.idx);
+      opt.textContent = `${item.v.name} — ${item.v.lang}${item.v.default ? " (default)" : ""}`;
+      elVoice.appendChild(opt);
+    }
+
+    // auto pick first zh voice if exists
+    const firstZh = list.find(x => /^zh/i.test(x.v.lang));
+    elVoice.value = firstZh ? String(firstZh.idx) : String(list[0].idx);
+
+    voiceChip.textContent = "Voice: OK";
+    voiceDot.className = "dot ok";
+  }
+
+  function selectedVoice(){
+    const voices = getVoices();
+    const idx = Number(elVoice.value);
+    if (!Number.isFinite(idx) || idx < 0) return null;
+    return voices[idx] || null;
+  }
+
+  function speakOnce(text, { voice, rate } = {}){
+    return new Promise((resolve, reject) => {
+      const u = new SpeechSynthesisUtterance(text);
+      if (voice) u.voice = voice;
+      u.lang = voice?.lang || "zh-HK";
+      u.rate = rate;
+
+      u.onend = () => resolve();
+      u.onerror = (e) => reject(e);
+
+      window.speechSynthesis.speak(u);
+    });
+  }
+
+  function renderOrder(){
+    const list = (spokenOrder.length ? spokenOrder : plannedOrder);
+    elOrder.innerHTML = "";
+    for (const w of list){
+      const li = document.createElement("li");
+      li.textContent = w;
+
+      const py = pinyinOf(w);
+      if (py){
+        const sm = document.createElement("small");
+        sm.textContent = py;
+        li.appendChild(sm);
+      }
+      elOrder.appendChild(li);
+    }
+  }
+
+  // Print: always use printArea only
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, (m) => ({
+      "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+    }[m]));
+  }
+  function nextFrame(){ return new Promise(res => requestAnimationFrame(() => res())); }
+
+  async function doPrint(){
+    const words = parseWords(elWords.value);
+    if (!words.length){
+      setStatusText(t().needWords);
+      return;
+    }
+
+    // Use spoken if available, else planned, else build new plan with current shuffle mode
+    const list = spokenOrder.length ? spokenOrder
+               : plannedOrder.length ? plannedOrder
+               : (shuffleEnabled ? shuffle(words) : words.slice());
+
+    const now = new Date();
+    const dateStr = now.toLocaleString();
+
+    const itemsHtml = list.map(w => {
+      const py = pinyinOf(w);
+      return `<li>${escapeHtml(w)}${py ? `<small>${escapeHtml(py)}</small>` : ""}</li>`;
+    }).join("");
+
+    const printArea = document.getElementById("printArea");
+    printArea.innerHTML = `
+      <h1>${escapeHtml(t().title)}</h1>
+      <div class="meta">Date: ${escapeHtml(dateStr)} ｜ Total: ${list.length}</div>
+      <ol>${itemsHtml}</ol>
+    `;
+
+    await nextFrame(); await nextFrame();
+    window.print();
+  }
+
+  // Build a plan for the session using shuffle toggle
+  function buildPlan(words){
+    return shuffleEnabled ? shuffle(words) : words.slice();
+  }
+
+  function updateShuffleUI(){
+    shuffleSwitch.classList.toggle("on", shuffleEnabled);
+    shuffleSwitch.setAttribute("aria-checked", shuffleEnabled ? "true" : "false");
+  }
+
+  async function run(){
+    cancelled = false;
+    running = true;
+    spokenOrder = [];
+    elOrder.innerHTML = "";
+
+    const words = parseWords(elWords.value);
+    const repeat = Math.max(1, parseInt(elRepeat.value || "1", 10));
+    const rate = Math.min(2, Math.max(0.5, parseFloat(elRate.value || "1")));
+    const voice = selectedVoice();
+
+    if (!words.length){
+      setStatusText(t().needWords);
+      running = false;
+      return;
+    }
+
+    // plannedOrder is created on Start; if not, create here
+    if (!plannedOrder.length) plannedOrder = buildPlan(words);
+
+    total = plannedOrder.length;
+    setCounter(0, total);
+    setProgress(0, total);
+
+    setStatusKey("speaking");
+
+    try{
+      for (let i = 0; i < plannedOrder.length; i++){
+        if (cancelled) break;
+
+        const w = plannedOrder[i];
+        spokenOrder.push(w);
+
+        elCurrentWord.textContent = w;
+        elCurrentPinyin.textContent = pinyinOf(w);
+
+        setCounter(i + 1, total);
+        setProgress(i + 1, total);
+
+        for (let r = 0; r < repeat; r++){
+          if (cancelled) break;
+          await speakOnce(w, { voice, rate });
+          await sleep(420);
+        }
+        await sleep(650);
+      }
+    } catch (err){
+      console.error(err);
+      setStatusText(t().noSpeechApi);
+    } finally {
+      running = false;
+      window.speechSynthesis.cancel();
+    }
+
+    renderOrder();
+    if (cancelled) setStatusKey("stopped");
+    else setStatusKey("done");
+  }
+
+  // ---------- events ----------
+  document.querySelectorAll(".langBtn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentLang = btn.dataset.lang;
+      localStorage.setItem("dict_lang", currentLang);
+      applyLang();
+    });
+  });
+
+  function toggleShuffle(){
+    shuffleEnabled = !shuffleEnabled;
+    localStorage.setItem("dict_shuffle", shuffleEnabled ? "1" : "0");
+    updateShuffleUI();
+
+    // If not running, rebuild plan preview (so the order list matches the mode)
+    if (!running){
+      const words = parseWords(elWords.value);
+      plannedOrder = words.length ? buildPlan(words) : [];
+      spokenOrder = [];
+      renderOrder();
+    }
+  }
+
+  shuffleSwitch.addEventListener("click", toggleShuffle);
+  shuffleSwitch.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " "){
+      e.preventDefault();
+      toggleShuffle();
+    }
+  });
+
+  btnStart.addEventListener('click', () => {
+    if (!('speechSynthesis' in window)){
+      setStatusText(t().noSpeechApi);
+      return;
+    }
+
+    const words = parseWords(elWords.value);
+    if (!words.length){
+      setStatusText(t().needWords);
+      return;
+    }
+
+    // Start a fresh session plan every time you press Start
+    plannedOrder = buildPlan(words);
+    spokenOrder = [];
+    renderOrder();
+
+    window.speechSynthesis.cancel();
+    setStatusKey("ready");
+    run();
+  });
+
+  btnPause.addEventListener('click', () => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.pause();
+    setStatusKey("paused");
+  });
+
+  btnResume.addEventListener('click', () => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.resume();
+    setStatusKey("resumed");
+  });
+
+  btnStop.addEventListener('click', () => {
+    cancelled = true;
+    window.speechSynthesis.cancel();
+    renderOrder();
+    setStatusKey("stopped");
+  });
+
+  btnPrint.addEventListener('click', () => {
+    doPrint();
+  });
+
+  btnTestPinyin.addEventListener('click', () => {
+    updatePinyinChip();
+    const lib = getPinyinLib();
+    const sample = parseWords(elWords.value).find(w => /[\u4e00-\u9fff]/.test(w)) || "顯著";
+    if (!lib){
+      setStatusText(t().pinyinOff);
+      return;
+    }
+    setStatusText(t().pinyinTest(sample, pinyinOf(sample)));
+  });
+
+  // ---------- init ----------
+  updateShuffleUI();
+  updatePinyinChip();
+  window.addEventListener("load", updatePinyinChip);
+
+  // voices load async in many browsers
+  if ('speechSynthesis' in window){
+    loadVoiceOptions();
+    window.speechSynthesis.onvoiceschanged = () => loadVoiceOptions();
+  } else {
+    voiceChip.textContent = "Voice: NO API";
+    voiceDot.className = "dot";
+  }
+
+  // set initial status & language
+  setStatusKey("ready");
+  applyLang();
+})();
+</script>
+</body>
+</html>
