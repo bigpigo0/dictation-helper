@@ -8,6 +8,7 @@
   <!-- Pinyin library (Mandarin Pinyin). Online CDN; for offline, download and use local file instead. -->
   <script src="https://unpkg.com/pinyin-pro@3.28.0/dist/index.js"></script>
   <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -33,6 +34,7 @@
         </div>
 
         <div class="chips">
+          <div class="chip"><span id="versionChip">Beta v0.1.0</span></div>
           <div class="chip"><span id="pinyinDot" class="dot"></span><span id="pinyinChip">Pinyin: LOADING</span></div>
           <div class="chip"><span id="voiceDot" class="dot"></span><span id="voiceChip">Voice: LOADING</span></div>
         </div>
@@ -64,6 +66,13 @@
           <div class="field">
             <label for="voice" id="t_voiceLabel">Voice</label>
             <select id="voice"></select>
+          </div>
+          <div class="field">
+            <label for="parseMode" id="t_modeLabel">Parse mode</label>
+            <select id="parseMode">
+              <option value="line" id="t_modeLine">Line mode</option>
+              <option value="word" id="t_modeWord">Word mode</option>
+            </select>
           </div>
         </div>
 
@@ -100,8 +109,13 @@
           <button class="miniBtn" id="print">Print</button>
           <button class="miniBtn" id="testPinyin">Test pinyin</button>
           <button class="miniBtn" id="clearText">Clear text</button>
+          <button class="miniBtn" id="dedupe">Remove duplicates</button>
           <button class="miniBtn" id="importImage">Import image</button>
+          <button class="miniBtn" id="importPdf">Import PDF</button>
+          <button class="miniBtn" id="markWrong">Mark wrong</button>
+          <button class="miniBtn" id="startRetry">Start retry</button>
           <input id="imageInput" type="file" accept="image/*" hidden />
+          <input id="pdfInput" type="file" accept="application/pdf,.pdf" hidden />
         </div>
       </div>
 
@@ -146,6 +160,9 @@
       repeatLabel: "重複次數",
       rateLabel: "語速",
       voiceLabel: "語音 Voice",
+      modeLabel: "練習模式",
+      modeLine: "逐行模式",
+      modeWord: "逐詞模式",
       shuffleTitle: "隨機排序",
       shuffleDesc: "開啟 = 隨機；關閉 = 跟輸入次序",
       currentLabel: "目前朗讀",
@@ -153,6 +170,7 @@
       orderTitle: "朗讀順序",
       orderHint: "完成後 / 停止後會顯示",
       footerNote: "提示：如果 Pinyin 顯示 OFF，可能離線/網絡被擋。可下載 pinyin-pro.min.js 放同一資料夾離線使用。",
+      versionLabel: (v) => `Beta ${v}`,
       start: "開始",
       pause: "暫停",
       resume: "繼續",
@@ -160,7 +178,11 @@
       print: "列印順序",
       testPinyin: "測試拼音",
       clearText: "清空文字",
+      dedupe: "移除重覆",
       importImage: "圖片匯入",
+      importPdf: "PDF 匯入",
+      markWrong: "標記錯題",
+      startRetry: "重溫錯題",
       placeholder: "例如：\n顯著\n變焦鏡頭\n發售",
       // Status states
       ready: "準備就緒",
@@ -179,8 +201,20 @@
       ocrEmpty: "未能從圖片讀到文字",
       ocrDone: "已從圖片匯入文字（保留原本排版）",
       cleared: "已清空文字",
+      deduped: (n) => `已移除 ${n} 個重覆項目`,
+      noDuplicates: "沒有重覆項目",
       ocrNoApi: "OCR 載入失敗，請檢查網絡",
-      ocrFailed: "圖片辨識失敗，請換另一張較清晰圖片"
+      ocrFailed: "圖片辨識失敗，請換另一張較清晰圖片",
+      pdfReading: "正在讀取 PDF…",
+      pdfDone: "已從 PDF 匯入文字",
+      pdfNoApi: "PDF 載入失敗，請檢查網絡",
+      pdfFailed: "PDF 匯入失敗，請換檔案再試",
+      pdfOcrFallback: "PDF 文字層不足，改用 OCR…",
+      markedWrong: (w, n) => `已標記錯題：${w}（共 ${n}）`,
+      markWrongIdle: "請在朗讀中先標記錯題",
+      retryReady: (n) => `已建立錯題重溫清單（${n}）`,
+      retryNoItems: "沒有已標記錯題",
+      retryStarted: "開始重溫錯題"
     },
     "zh-Hans": {
       title: "中文听写",
@@ -190,6 +224,9 @@
       repeatLabel: "重复次数",
       rateLabel: "语速",
       voiceLabel: "语音 Voice",
+      modeLabel: "练习模式",
+      modeLine: "逐行模式",
+      modeWord: "逐词模式",
       shuffleTitle: "随机排序",
       shuffleDesc: "开启 = 随机；关闭 = 按输入顺序",
       currentLabel: "当前朗读",
@@ -197,6 +234,7 @@
       orderTitle: "朗读顺序",
       orderHint: "完成后 / 停止后会显示",
       footerNote: "提示：如果拼音显示 OFF，可能离线/被拦。可下载 pinyin-pro.min.js 放同一文件夹离线使用。",
+      versionLabel: (v) => `Beta ${v}`,
       start: "开始",
       pause: "暂停",
       resume: "继续",
@@ -204,7 +242,11 @@
       print: "打印顺序",
       testPinyin: "测试拼音",
       clearText: "清空文字",
+      dedupe: "移除重复",
       importImage: "图片导入",
+      importPdf: "PDF 导入",
+      markWrong: "标记错题",
+      startRetry: "重练错题",
       placeholder: "例如：\n显著\n变焦镜头\n发售",
       ready: "准备就绪",
       speaking: "朗读中",
@@ -221,8 +263,20 @@
       ocrEmpty: "未能从图片读取到文字",
       ocrDone: "已从图片导入文字（保留原始排版）",
       cleared: "已清空文字",
+      deduped: (n) => `已移除 ${n} 个重复项目`,
+      noDuplicates: "没有重复项目",
       ocrNoApi: "OCR 加载失败，请检查网络",
-      ocrFailed: "图片识别失败，请换更清晰的图片"
+      ocrFailed: "图片识别失败，请换更清晰的图片",
+      pdfReading: "正在读取 PDF…",
+      pdfDone: "已从 PDF 导入文字",
+      pdfNoApi: "PDF 加载失败，请检查网络",
+      pdfFailed: "PDF 导入失败，请更换文件再试",
+      pdfOcrFallback: "PDF 文本层不足，改用 OCR…",
+      markedWrong: (w, n) => `已标记错题：${w}（共 ${n}）`,
+      markWrongIdle: "请在朗读中先标记错题",
+      retryReady: (n) => `已生成错题重练清单（${n}）`,
+      retryNoItems: "没有已标记错题",
+      retryStarted: "开始重练错题"
     },
     "en": {
       title: "Dictation Coach",
@@ -232,6 +286,9 @@
       repeatLabel: "Repeat",
       rateLabel: "Speech rate",
       voiceLabel: "Voice",
+      modeLabel: "Practice mode",
+      modeLine: "Line mode",
+      modeWord: "Word mode",
       shuffleTitle: "Shuffle words",
       shuffleDesc: "ON = random; OFF = input order",
       currentLabel: "Now speaking",
@@ -239,6 +296,7 @@
       orderTitle: "Speaking order",
       orderHint: "Shown after finish / stop",
       footerNote: "Tip: If Pinyin shows OFF, the CDN may be blocked/offline. Download pinyin-pro.min.js and reference it locally for offline use.",
+      versionLabel: (v) => `Beta ${v}`,
       start: "Start",
       pause: "Pause",
       resume: "Resume",
@@ -246,7 +304,11 @@
       print: "Print order",
       testPinyin: "Test pinyin",
       clearText: "Clear text",
+      dedupe: "Remove duplicates",
       importImage: "Import image",
+      importPdf: "Import PDF",
+      markWrong: "Mark wrong",
+      startRetry: "Start retry",
       placeholder: "Example:\n顯著\n變焦鏡頭\n發售",
       ready: "Ready",
       speaking: "Speaking",
@@ -263,12 +325,25 @@
       ocrEmpty: "No text detected from image",
       ocrDone: "Imported text from image (original layout preserved)",
       cleared: "Text cleared",
+      deduped: (n) => `Removed ${n} duplicate items`,
+      noDuplicates: "No duplicate items",
       ocrNoApi: "OCR failed to load. Check your network.",
-      ocrFailed: "Image OCR failed. Try a clearer image."
+      ocrFailed: "Image OCR failed. Try a clearer image.",
+      pdfReading: "Reading PDF...",
+      pdfDone: "Imported text from PDF",
+      pdfNoApi: "PDF failed to load. Check your network.",
+      pdfFailed: "PDF import failed. Try another file.",
+      pdfOcrFallback: "PDF has little text layer, using OCR...",
+      markedWrong: (w, n) => `Marked wrong: ${w} (${n})`,
+      markWrongIdle: "Start speaking first, then mark wrong items",
+      retryReady: (n) => `Retry list generated (${n})`,
+      retryNoItems: "No marked wrong items",
+      retryStarted: "Retry round started"
     }
   };
 
   let currentLang = localStorage.getItem("dict_lang") || "zh-Hant";
+  const APP_VERSION = "v0.1.0";
   function t(){ return I18N[currentLang] || I18N["zh-Hant"]; }
 
   // ---------- elements ----------
@@ -276,6 +351,7 @@
   const elRepeat = document.getElementById('repeat');
   const elRate = document.getElementById('rate');
   const elVoice = document.getElementById('voice');
+  const elParseMode = document.getElementById('parseMode');
   const elOrder = document.getElementById('order');
   const elCounter = document.getElementById('counter');
   const elBar = document.getElementById('bar');
@@ -286,6 +362,7 @@
   const pinyinChip = document.getElementById('pinyinChip');
   const voiceDot = document.getElementById('voiceDot');
   const voiceChip = document.getElementById('voiceChip');
+  const versionChip = document.getElementById('versionChip');
 
   const btnStart = document.getElementById('start');
   const btnPause = document.getElementById('pause');
@@ -294,20 +371,30 @@
   const btnPrint = document.getElementById('print');
   const btnTestPinyin = document.getElementById('testPinyin');
   const btnClearText = document.getElementById('clearText');
+  const btnDedupe = document.getElementById('dedupe');
   const btnImportImage = document.getElementById('importImage');
+  const btnImportPdf = document.getElementById('importPdf');
+  const btnMarkWrong = document.getElementById('markWrong');
+  const btnStartRetry = document.getElementById('startRetry');
   const imageInput = document.getElementById('imageInput');
+  const pdfInput = document.getElementById('pdfInput');
 
   const shuffleSwitch = document.getElementById('shuffleSwitch');
 
   // ---------- state ----------
   let running = false;
   let cancelled = false;
+  let parseMode = localStorage.getItem("dict_parse_mode") || "line";
 
   let shuffleEnabled = (localStorage.getItem("dict_shuffle") ?? "1") === "1";
 
   let plannedOrder = [];   // order for this session (shuffled or input order)
   let spokenOrder = [];    // actual spoken sequence
   let total = 0;
+  let currentItem = "";
+  let retryItems = [];
+  let retrySet = new Set();
+  let inRetryRound = false;
 
   let statusKey = "ready";     // ready | speaking | paused | resumed | stopped | done
   let statusOverride = "";     // custom message string
@@ -331,6 +418,9 @@
     setText("t_repeatLabel", dict.repeatLabel);
     setText("t_rateLabel", dict.rateLabel);
     setText("t_voiceLabel", dict.voiceLabel);
+    setText("t_modeLabel", dict.modeLabel);
+    setText("t_modeLine", dict.modeLine);
+    setText("t_modeWord", dict.modeWord);
 
     setText("t_shuffleTitle", dict.shuffleTitle);
     setText("t_shuffleDesc", dict.shuffleDesc);
@@ -342,6 +432,7 @@
     setText("t_orderTitle", dict.orderTitle);
     setText("t_orderHint", dict.orderHint);
     setText("t_footerNote", dict.footerNote);
+    versionChip.textContent = dict.versionLabel(APP_VERSION);
 
     setText("t_start", dict.start);
     setText("t_pause", dict.pause);
@@ -351,7 +442,11 @@
     btnPrint.textContent = dict.print;
     btnTestPinyin.textContent = dict.testPinyin;
     btnClearText.textContent = dict.clearText;
+    btnDedupe.textContent = dict.dedupe;
     btnImportImage.textContent = dict.importImage;
+    btnImportPdf.textContent = dict.importPdf;
+    btnMarkWrong.textContent = dict.markWrong;
+    updateRetryButtonLabel();
 
     elWords.placeholder = dict.placeholder;
 
@@ -385,6 +480,28 @@
 
   function parseWords(text){
     return text.split(/\s+/).map(s => s.trim()).filter(Boolean);
+  }
+
+  function parseLines(text){
+    return String(text || "").replace(/\r/g, "\n").split("\n").map(s => s.trim()).filter(Boolean);
+  }
+
+  function parseUnits(text){
+    return parseMode === "line" ? parseLines(text) : parseWords(text);
+  }
+
+  function rebuildPreview(){
+    if (!running){
+      const units = parseUnits(elWords.value);
+      plannedOrder = units.length ? buildPlan(units) : [];
+      spokenOrder = [];
+      renderOrder();
+    }
+  }
+
+  function updateRetryButtonLabel(){
+    const base = t().startRetry || "Start retry";
+    btnStartRetry.textContent = retryItems.length ? `${base} (${retryItems.length})` : base;
   }
 
   function ocrLanguage(){
@@ -522,8 +639,8 @@
   function nextFrame(){ return new Promise(res => requestAnimationFrame(() => res())); }
 
   async function doPrint(){
-    const words = parseWords(elWords.value);
-    if (!words.length){
+    const units = parseUnits(elWords.value);
+    if (!units.length){
       setStatusText(t().needWords);
       return;
     }
@@ -531,7 +648,7 @@
     // Use spoken if available, else planned, else build new plan with current shuffle mode
     const list = spokenOrder.length ? spokenOrder
                : plannedOrder.length ? plannedOrder
-               : (shuffleEnabled ? shuffle(words) : words.slice());
+               : (shuffleEnabled ? shuffle(units) : units.slice());
 
     const now = new Date();
     const dateStr = now.toLocaleString();
@@ -566,21 +683,22 @@
     cancelled = false;
     running = true;
     spokenOrder = [];
+    currentItem = "";
     elOrder.innerHTML = "";
 
-    const words = parseWords(elWords.value);
+    const units = parseUnits(elWords.value);
     const repeat = Math.max(1, parseInt(elRepeat.value || "1", 10));
     const rate = Math.min(2, Math.max(0.5, parseFloat(elRate.value || "1")));
     const voice = selectedVoice();
 
-    if (!words.length){
+    if (!units.length){
       setStatusText(t().needWords);
       running = false;
       return;
     }
 
     // plannedOrder is created on Start; if not, create here
-    if (!plannedOrder.length) plannedOrder = buildPlan(words);
+    if (!plannedOrder.length) plannedOrder = buildPlan(units);
 
     total = plannedOrder.length;
     setCounter(0, total);
@@ -593,6 +711,7 @@
         if (cancelled) break;
 
         const w = plannedOrder[i];
+        currentItem = w;
         spokenOrder.push(w);
 
         elCurrentWord.textContent = w;
@@ -613,12 +732,18 @@
       setStatusText(t().noSpeechApi);
     } finally {
       running = false;
+      currentItem = "";
       window.speechSynthesis.cancel();
     }
 
     renderOrder();
     if (cancelled) setStatusKey("stopped");
-    else setStatusKey("done");
+    else {
+      setStatusKey("done");
+      if (!inRetryRound && retryItems.length){
+        setStatusText(t().retryReady(retryItems.length));
+      }
+    }
   }
 
   // ---------- events ----------
@@ -637,10 +762,7 @@
 
     // If not running, rebuild plan preview (so the order list matches the mode)
     if (!running){
-      const words = parseWords(elWords.value);
-      plannedOrder = words.length ? buildPlan(words) : [];
-      spokenOrder = [];
-      renderOrder();
+      rebuildPreview();
     }
   }
 
@@ -658,14 +780,18 @@
       return;
     }
 
-    const words = parseWords(elWords.value);
-    if (!words.length){
+    const units = parseUnits(elWords.value);
+    if (!units.length){
       setStatusText(t().needWords);
       return;
     }
 
     // Start a fresh session plan every time you press Start
-    plannedOrder = buildPlan(words);
+    retryItems = [];
+    retrySet = new Set();
+    updateRetryButtonLabel();
+    inRetryRound = false;
+    plannedOrder = buildPlan(units);
     spokenOrder = [];
     renderOrder();
 
@@ -700,7 +826,7 @@
   btnTestPinyin.addEventListener('click', () => {
     updatePinyinChip();
     const lib = getPinyinLib();
-    const sample = parseWords(elWords.value).find(w => /[\u4e00-\u9fff]/.test(w)) || "顯著";
+    const sample = parseUnits(elWords.value).find(w => /[\u4e00-\u9fff]/.test(w)) || "顯著";
     if (!lib){
       setStatusText(t().pinyinOff);
       return;
@@ -712,12 +838,39 @@
     elWords.value = "";
     plannedOrder = [];
     spokenOrder = [];
+    retryItems = [];
+    retrySet = new Set();
+    updateRetryButtonLabel();
+    inRetryRound = false;
     elOrder.innerHTML = "";
     elCurrentWord.textContent = "—";
     elCurrentPinyin.textContent = "";
     setCounter(0, 0);
     setProgress(0, 0);
     setStatusText(t().cleared);
+  });
+
+  btnDedupe.addEventListener('click', () => {
+    const lines = String(elWords.value || "").replace(/\r/g, "\n").split("\n");
+    const seen = new Set();
+    let removed = 0;
+    const kept = [];
+    for (const line of lines){
+      const key = line.trim();
+      if (!key){
+        kept.push(line);
+        continue;
+      }
+      if (seen.has(key)){
+        removed++;
+        continue;
+      }
+      seen.add(key);
+      kept.push(line);
+    }
+    elWords.value = kept.join("\n").replace(/\n{3,}/g, "\n\n");
+    rebuildPreview();
+    setStatusText(removed ? t().deduped(removed) : t().noDuplicates);
   });
 
   btnImportImage.addEventListener('click', () => {
@@ -755,12 +908,7 @@
         ? `${existingText.replace(/\s*$/, "")}\n${importedText}`
         : importedText;
 
-      if (!running){
-        const words = parseWords(elWords.value);
-        plannedOrder = words.length ? buildPlan(words) : [];
-        spokenOrder = [];
-        renderOrder();
-      }
+      rebuildPreview();
       setStatusText(t().ocrDone);
     } catch (err){
       console.error(err);
@@ -768,9 +916,141 @@
     }
   });
 
+  async function readPdfTextLayer(file){
+    const pdfjsLib = window.pdfjsLib;
+    if (!pdfjsLib || typeof pdfjsLib.getDocument !== "function"){
+      throw new Error("PDF API unavailable");
+    }
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc){
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+    }
+
+    const ab = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+    const pageTexts = [];
+    for (let i = 1; i <= pdf.numPages; i++){
+      const page = await pdf.getPage(i);
+      const tc = await page.getTextContent();
+      const parts = tc.items.map(item => String(item.str || "").trim()).filter(Boolean);
+      pageTexts.push(parts.join(" "));
+    }
+    return pageTexts.join("\n").trim();
+  }
+
+  async function readPdfByOcr(file){
+    const pdfjsLib = window.pdfjsLib;
+    if (!pdfjsLib || typeof pdfjsLib.getDocument !== "function"){
+      throw new Error("PDF API unavailable");
+    }
+    if (!window.Tesseract || typeof window.Tesseract.recognize !== "function"){
+      throw new Error("OCR API unavailable");
+    }
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc){
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+    }
+
+    const ab = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+    const ocrPages = [];
+    for (let i = 1; i <= pdf.numPages; i++){
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 2.0 });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      const ctx = canvas.getContext("2d");
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) continue;
+
+      const { data } = await window.Tesseract.recognize(blob, ocrLanguage(), {
+        logger: (m) => {
+          if (m?.status === "recognizing text" && Number.isFinite(m.progress)){
+            const pct = Math.max(0, Math.min(100, Math.round(m.progress * 100)));
+            setStatusText(`${t().pdfOcrFallback} ${i}/${pdf.numPages} ${pct}%`);
+          }
+        }
+      });
+      const text = String(data?.text || "").replace(/\r/g, "\n").trim();
+      if (text) ocrPages.push(text);
+    }
+    return ocrPages.join("\n").trim();
+  }
+
+  btnImportPdf.addEventListener('click', () => {
+    pdfInput.value = "";
+    pdfInput.click();
+  });
+
+  pdfInput.addEventListener('change', async () => {
+    const file = pdfInput.files?.[0];
+    if (!file) return;
+    try{
+      setStatusText(t().pdfReading);
+      let importedText = await readPdfTextLayer(file);
+      const compactLen = importedText.replace(/\s+/g, "").length;
+      if (compactLen < 20){
+        setStatusText(t().pdfOcrFallback);
+        importedText = await readPdfByOcr(file);
+      }
+      if (!importedText){
+        setStatusText(t().ocrEmpty);
+        return;
+      }
+      const existingText = elWords.value || "";
+      elWords.value = existingText.trim()
+        ? `${existingText.replace(/\s*$/, "")}\n${importedText}`
+        : importedText;
+      rebuildPreview();
+      setStatusText(t().pdfDone);
+    } catch (err){
+      console.error(err);
+      const msg = String(err?.message || "");
+      setStatusText(msg.includes("PDF API") ? t().pdfNoApi : t().pdfFailed);
+    }
+  });
+
+  btnMarkWrong.addEventListener('click', () => {
+    if (!running || !currentItem){
+      setStatusText(t().markWrongIdle);
+      return;
+    }
+    if (!retrySet.has(currentItem)){
+      retrySet.add(currentItem);
+      retryItems.push(currentItem);
+      updateRetryButtonLabel();
+    }
+    setStatusText(t().markedWrong(currentItem, retryItems.length));
+  });
+
+  btnStartRetry.addEventListener('click', () => {
+    if (running) return;
+    if (!retryItems.length){
+      setStatusText(t().retryNoItems);
+      return;
+    }
+    inRetryRound = true;
+    plannedOrder = retryItems.slice();
+    spokenOrder = [];
+    renderOrder();
+    window.speechSynthesis.cancel();
+    setStatusText(t().retryStarted);
+    run().finally(() => {
+      inRetryRound = false;
+    });
+  });
+
+  elParseMode.addEventListener('change', () => {
+    parseMode = elParseMode.value === "word" ? "word" : "line";
+    localStorage.setItem("dict_parse_mode", parseMode);
+    rebuildPreview();
+  });
+
   // ---------- init ----------
+  if (parseMode !== "line" && parseMode !== "word") parseMode = "line";
   updateShuffleUI();
   updatePinyinChip();
+  elParseMode.value = parseMode;
   window.addEventListener("load", updatePinyinChip);
 
   // voices load async in many browsers
