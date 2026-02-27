@@ -99,6 +99,7 @@
         <div class="miniActions">
           <button class="miniBtn" id="print">Print</button>
           <button class="miniBtn" id="testPinyin">Test pinyin</button>
+          <button class="miniBtn" id="clearText">Clear text</button>
           <button class="miniBtn" id="importImage">Import image</button>
           <input id="imageInput" type="file" accept="image/*" hidden />
         </div>
@@ -158,6 +159,7 @@
       stop: "停止",
       print: "列印順序",
       testPinyin: "測試拼音",
+      clearText: "清空文字",
       importImage: "圖片匯入",
       placeholder: "例如：\n顯著\n變焦鏡頭\n發售",
       // Status states
@@ -176,6 +178,7 @@
       ocrProgress: (pct) => `OCR 辨識中 ${pct}%`,
       ocrEmpty: "未能從圖片讀到文字",
       ocrDone: "已從圖片匯入文字（保留原本排版）",
+      cleared: "已清空文字",
       ocrNoApi: "OCR 載入失敗，請檢查網絡",
       ocrFailed: "圖片辨識失敗，請換另一張較清晰圖片"
     },
@@ -200,6 +203,7 @@
       stop: "停止",
       print: "打印顺序",
       testPinyin: "测试拼音",
+      clearText: "清空文字",
       importImage: "图片导入",
       placeholder: "例如：\n显著\n变焦镜头\n发售",
       ready: "准备就绪",
@@ -216,6 +220,7 @@
       ocrProgress: (pct) => `OCR 识别中 ${pct}%`,
       ocrEmpty: "未能从图片读取到文字",
       ocrDone: "已从图片导入文字（保留原始排版）",
+      cleared: "已清空文字",
       ocrNoApi: "OCR 加载失败，请检查网络",
       ocrFailed: "图片识别失败，请换更清晰的图片"
     },
@@ -240,6 +245,7 @@
       stop: "Stop",
       print: "Print order",
       testPinyin: "Test pinyin",
+      clearText: "Clear text",
       importImage: "Import image",
       placeholder: "Example:\n顯著\n變焦鏡頭\n發售",
       ready: "Ready",
@@ -256,6 +262,7 @@
       ocrProgress: (pct) => `OCR in progress ${pct}%`,
       ocrEmpty: "No text detected from image",
       ocrDone: "Imported text from image (original layout preserved)",
+      cleared: "Text cleared",
       ocrNoApi: "OCR failed to load. Check your network.",
       ocrFailed: "Image OCR failed. Try a clearer image."
     }
@@ -286,6 +293,7 @@
   const btnStop = document.getElementById('stop');
   const btnPrint = document.getElementById('print');
   const btnTestPinyin = document.getElementById('testPinyin');
+  const btnClearText = document.getElementById('clearText');
   const btnImportImage = document.getElementById('importImage');
   const imageInput = document.getElementById('imageInput');
 
@@ -342,6 +350,7 @@
 
     btnPrint.textContent = dict.print;
     btnTestPinyin.textContent = dict.testPinyin;
+    btnClearText.textContent = dict.clearText;
     btnImportImage.textContent = dict.importImage;
 
     elWords.placeholder = dict.placeholder;
@@ -697,6 +706,18 @@
       return;
     }
     setStatusText(t().pinyinTest(sample, pinyinOf(sample)));
+  });
+
+  btnClearText.addEventListener('click', () => {
+    elWords.value = "";
+    plannedOrder = [];
+    spokenOrder = [];
+    elOrder.innerHTML = "";
+    elCurrentWord.textContent = "—";
+    elCurrentPinyin.textContent = "";
+    setCounter(0, 0);
+    setProgress(0, 0);
+    setStatusText(t().cleared);
   });
 
   btnImportImage.addEventListener('click', () => {
