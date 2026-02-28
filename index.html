@@ -57,11 +57,13 @@
         <div class="formRow">
           <div class="field">
             <label for="repeat" id="t_repeatLabel">Repeat</label>
-            <input id="repeat" type="number" min="1" value="2" />
+            <input id="repeat" type="range" min="1" max="4" step="1" value="2" />
+            <div class="hint" id="repeatValue">2</div>
           </div>
           <div class="field">
             <label for="rate" id="t_rateLabel">Speech rate</label>
-            <input id="rate" type="number" min="0.5" max="2" step="0.1" value="1" />
+            <input id="rate" type="range" min="0.5" max="2" step="0.1" value="1" />
+            <div class="hint" id="rateValue">1.0</div>
           </div>
           <div class="field">
             <label for="voice" id="t_voiceLabel">Voice</label>
@@ -211,10 +213,12 @@
       pdfFailed: "PDF 匯入失敗，請換檔案再試",
       pdfOcrFallback: "PDF 文字層不足，改用 OCR…",
       markedWrong: (w, n) => `已標記錯題：${w}（共 ${n}）`,
+      unmarkedWrong: (w, n) => `已取消錯題：${w}（共 ${n}）`,
       markWrongIdle: "請在朗讀中先標記錯題",
       retryReady: (n) => `已建立錯題重溫清單（${n}）`,
       retryNoItems: "沒有已標記錯題",
-      retryStarted: "開始重溫錯題"
+      retryStarted: "開始重溫錯題",
+      wrongHint: "可按清單項目標記或取消錯題"
     },
     "zh-Hans": {
       title: "中文听写",
@@ -273,10 +277,12 @@
       pdfFailed: "PDF 导入失败，请更换文件再试",
       pdfOcrFallback: "PDF 文本层不足，改用 OCR…",
       markedWrong: (w, n) => `已标记错题：${w}（共 ${n}）`,
+      unmarkedWrong: (w, n) => `已取消错题：${w}（共 ${n}）`,
       markWrongIdle: "请在朗读中先标记错题",
       retryReady: (n) => `已生成错题重练清单（${n}）`,
       retryNoItems: "没有已标记错题",
-      retryStarted: "开始重练错题"
+      retryStarted: "开始重练错题",
+      wrongHint: "可点击列表项目标记或取消错题"
     },
     "en": {
       title: "Dictation Coach",
@@ -335,10 +341,12 @@
       pdfFailed: "PDF import failed. Try another file.",
       pdfOcrFallback: "PDF has little text layer, using OCR...",
       markedWrong: (w, n) => `Marked wrong: ${w} (${n})`,
+      unmarkedWrong: (w, n) => `Unmarked wrong: ${w} (${n})`,
       markWrongIdle: "Start speaking first, then mark wrong items",
       retryReady: (n) => `Retry list generated (${n})`,
       retryNoItems: "No marked wrong items",
-      retryStarted: "Retry round started"
+      retryStarted: "Retry round started",
+      wrongHint: "Click an item in the list to mark or unmark it"
     }
   };
 
@@ -350,6 +358,8 @@
   const elWords = document.getElementById('words');
   const elRepeat = document.getElementById('repeat');
   const elRate = document.getElementById('rate');
+  const elRepeatValue = document.getElementById('repeatValue');
+  const elRateValue = document.getElementById('rateValue');
   const elVoice = document.getElementById('voice');
   const elParseMode = document.getElementById('parseMode');
   const elOrder = document.getElementById('order');
@@ -403,6 +413,11 @@
   function setText(id, value){
     const el = document.getElementById(id);
     if (el) el.textContent = value;
+  }
+
+  function updateSliderLabels(){
+    elRepeatValue.textContent = String(parseInt(elRepeat.value || "2", 10));
+    elRateValue.textContent = Number(elRate.value || "1").toFixed(1);
   }
 
   function applyLang(){
@@ -502,6 +517,23 @@
   function updateRetryButtonLabel(){
     const base = t().startRetry || "Start retry";
     btnStartRetry.textContent = retryItems.length ? `${base} (${retryItems.length})` : base;
+  }
+
+  function toggleWrongItem(item){
+    if (!item) return;
+    if (retrySet.has(item)){
+      retrySet.delete(item);
+      retryItems = retryItems.filter(x => x !== item);
+      updateRetryButtonLabel();
+      renderOrder();
+      setStatusText(t().unmarkedWrong(item, retryItems.length));
+      return;
+    }
+    retrySet.add(item);
+    retryItems.push(item);
+    updateRetryButtonLabel();
+    renderOrder();
+    setStatusText(t().markedWrong(item, retryItems.length));
   }
 
   function ocrLanguage(){
@@ -618,7 +650,16 @@
     elOrder.innerHTML = "";
     for (const w of list){
       const li = document.createElement("li");
-      li.textContent = w;
+      li.className = "orderItem";
+      if (retrySet.has(w)) li.classList.add("wrongMarked");
+      li.title = t().wrongHint;
+      li.addEventListener("click", () => {
+        toggleWrongItem(w);
+      });
+
+      const text = document.createElement("span");
+      text.textContent = w;
+      li.appendChild(text);
 
       const py = pinyinOf(w);
       if (py){
@@ -1015,12 +1056,7 @@
       setStatusText(t().markWrongIdle);
       return;
     }
-    if (!retrySet.has(currentItem)){
-      retrySet.add(currentItem);
-      retryItems.push(currentItem);
-      updateRetryButtonLabel();
-    }
-    setStatusText(t().markedWrong(currentItem, retryItems.length));
+    toggleWrongItem(currentItem);
   });
 
   btnStartRetry.addEventListener('click', () => {
@@ -1046,10 +1082,14 @@
     rebuildPreview();
   });
 
+  elRepeat.addEventListener('input', updateSliderLabels);
+  elRate.addEventListener('input', updateSliderLabels);
+
   // ---------- init ----------
   if (parseMode !== "line" && parseMode !== "word") parseMode = "line";
   updateShuffleUI();
   updatePinyinChip();
+  updateSliderLabels();
   elParseMode.value = parseMode;
   window.addEventListener("load", updatePinyinChip);
 
