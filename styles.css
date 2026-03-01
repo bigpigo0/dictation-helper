@@ -589,16 +589,3 @@ select option, select optgroup{
     }
     .btn:disabled{ opacity: 0.55; cursor:not-allowed; }
 
-    /* Print: show only #printArea */
-    @media print {
-      @page { margin: 14mm; }
-      body * { display: none !important; }
-      #printArea, #printArea * { display: block !important; visibility: visible !important; }
-      #printArea { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans TC", "PingFang TC", sans-serif; color:#000 !important; }
-      #printArea h1 { margin: 0 0 6mm 0; font-size: 18pt; }
-      #printArea .meta { font-size: 10pt; color:#333; margin-bottom: 6mm; }
-      #printArea ol { padding-left: 18px; margin: 0; }
-      #printArea li { margin: 3mm 0; font-size: 12pt; }
-      #printArea small { display:block !important; color:#444 !important; font-size: 10pt; margin-top: 1mm; }
-    }
-

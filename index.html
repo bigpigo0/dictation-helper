@@ -21,7 +21,7 @@
           <div class="logo" aria-hidden="true"></div>
           <div>
             <h1 id="t_title">Dictation Coach</h1>
-            <div class="subtitle" id="t_subtitle">Enter words → Speak → Write → Show order (with pinyin)</div>
+            <div class="subtitle" id="t_subtitle">Structured Chinese dictation practice with speech guidance and pinyin support</div>
           </div>
         </div>
       </div>
@@ -119,8 +119,6 @@
         </div>
 
         <div class="miniActions">
-          <button class="miniBtn" id="print">Print</button>
-          <button class="miniBtn" id="testPinyin">Test pinyin</button>
           <button class="miniBtn" id="clearText">Clear text</button>
           <button class="miniBtn" id="dedupe">Remove duplicates</button>
           <button class="miniBtn" id="importImage">Import image</button>
@@ -158,16 +156,13 @@
     </div>
   </div>
 
-  <!-- Print-only area -->
-  <div id="printArea"></div>
-
 <script>
 (() => {
   // ---------- i18n ----------
   const I18N = {
     "zh-Hant": {
       title: "中文默書",
-      subtitle: "輸入詞語 → 朗讀 → 小朋友寫字 → 顯示朗讀順序（含拼音）",
+      subtitle: "具備語音引導及拼音支援的中文默書練習工具",
       wordsTitle: "詞語清單",
       wordsHint: "空格 / 換行分隔",
       repeatLabel: "重複次數",
@@ -188,8 +183,6 @@
       pause: "暫停",
       resume: "繼續",
       stop: "停止",
-      print: "列印順序",
-      testPinyin: "測試拼音",
       clearText: "清空文字",
       dedupe: "移除重覆",
       importImage: "圖片匯入",
@@ -207,8 +200,6 @@
       // Messages
       needWords: "請先輸入詞語",
       noSpeechApi: "此瀏覽器不支援語音。請用 Chrome / Edge。",
-      pinyinOff: "拼音 OFF（可能離線/被擋）。請確保可連網或用本機 pinyin-pro.min.js",
-      pinyinTest: (w, py) => `拼音測試：${w} → ${py}`,
       ocrReading: "正在辨識圖片文字…",
       ocrProgress: (pct) => `OCR 辨識中 ${pct}%`,
       ocrEmpty: "未能從圖片讀到文字",
@@ -233,7 +224,7 @@
     },
     "zh-Hans": {
       title: "中文听写",
-      subtitle: "输入词语 → 朗读 → 孩子书写 → 显示朗读顺序（含拼音）",
+      subtitle: "具备语音引导及拼音支持的中文听写练习工具",
       wordsTitle: "词语列表",
       wordsHint: "空格 / 换行分隔",
       repeatLabel: "重复次数",
@@ -254,8 +245,6 @@
       pause: "暂停",
       resume: "继续",
       stop: "停止",
-      print: "打印顺序",
-      testPinyin: "测试拼音",
       clearText: "清空文字",
       dedupe: "移除重复",
       importImage: "图片导入",
@@ -271,8 +260,6 @@
       done: "完成",
       needWords: "请先输入词语",
       noSpeechApi: "此浏览器不支持语音。请用 Chrome / Edge。",
-      pinyinOff: "拼音 OFF（可能离线/被拦）。请确保可联网或用本机 pinyin-pro.min.js",
-      pinyinTest: (w, py) => `拼音测试：${w} → ${py}`,
       ocrReading: "正在识别图片文字…",
       ocrProgress: (pct) => `OCR 识别中 ${pct}%`,
       ocrEmpty: "未能从图片读取到文字",
@@ -297,7 +284,7 @@
     },
     "en": {
       title: "Dictation Coach",
-      subtitle: "Enter words → Speak → Kids write → Show speaking order (with pinyin)",
+      subtitle: "Professional Chinese dictation practice with guided speech and pinyin support",
       wordsTitle: "Word list",
       wordsHint: "Separated by spaces / new lines",
       repeatLabel: "Repeat",
@@ -318,8 +305,6 @@
       pause: "Pause",
       resume: "Resume",
       stop: "Stop",
-      print: "Print order",
-      testPinyin: "Test pinyin",
       clearText: "Clear text",
       dedupe: "Remove duplicates",
       importImage: "Import image",
@@ -335,8 +320,6 @@
       done: "Done",
       needWords: "Please enter words first",
       noSpeechApi: "Speech not supported. Use Chrome / Edge.",
-      pinyinOff: "Pinyin OFF (offline / blocked). Use online or local pinyin-pro.min.js",
-      pinyinTest: (w, py) => `Pinyin test: ${w} → ${py}`,
       ocrReading: "Reading text from image...",
       ocrProgress: (pct) => `OCR in progress ${pct}%`,
       ocrEmpty: "No text detected from image",
@@ -388,8 +371,6 @@
   const btnPause = document.getElementById('pause');
   const btnResume = document.getElementById('resume');
   const btnStop = document.getElementById('stop');
-  const btnPrint = document.getElementById('print');
-  const btnTestPinyin = document.getElementById('testPinyin');
   const btnClearText = document.getElementById('clearText');
   const btnDedupe = document.getElementById('dedupe');
   const btnImportImage = document.getElementById('importImage');
@@ -471,8 +452,6 @@
     setText("t_resume", dict.resume);
     setText("t_stop", dict.stop);
 
-    btnPrint.textContent = dict.print;
-    btnTestPinyin.textContent = dict.testPinyin;
     btnClearText.textContent = dict.clearText;
     btnDedupe.textContent = dict.dedupe;
     btnImportImage.textContent = dict.importImage;
@@ -688,45 +667,6 @@
     }
   }
 
-  // Print: always use printArea only
-  function escapeHtml(str){
-    return String(str).replace(/[&<>"']/g, (m) => ({
-      "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
-    }[m]));
-  }
-  function nextFrame(){ return new Promise(res => requestAnimationFrame(() => res())); }
-
-  async function doPrint(){
-    const units = parseUnits(elWords.value);
-    if (!units.length){
-      setStatusText(t().needWords);
-      return;
-    }
-
-    // Use spoken if available, else planned, else build new plan with current shuffle mode
-    const list = spokenOrder.length ? spokenOrder
-               : plannedOrder.length ? plannedOrder
-               : (shuffleEnabled ? shuffle(units) : units.slice());
-
-    const now = new Date();
-    const dateStr = now.toLocaleString();
-
-    const itemsHtml = list.map(w => {
-      const py = pinyinOf(w);
-      return `<li>${escapeHtml(w)}${py ? `<small>${escapeHtml(py)}</small>` : ""}</li>`;
-    }).join("");
-
-    const printArea = document.getElementById("printArea");
-    printArea.innerHTML = `
-      <h1>${escapeHtml(t().title)}</h1>
-      <div class="meta">Date: ${escapeHtml(dateStr)} ｜ Total: ${list.length}</div>
-      <ol>${itemsHtml}</ol>
-    `;
-
-    await nextFrame(); await nextFrame();
-    window.print();
-  }
-
   // Build a plan for the session using shuffle toggle
   function buildPlan(words){
     return shuffleEnabled ? shuffle(words) : words.slice();
@@ -875,21 +815,6 @@
     window.speechSynthesis.cancel();
     renderOrder();
     setStatusKey("stopped");
-  });
-
-  btnPrint.addEventListener('click', () => {
-    doPrint();
-  });
-
-  btnTestPinyin.addEventListener('click', () => {
-    updatePinyinChip();
-    const lib = getPinyinLib();
-    const sample = parseUnits(elWords.value).find(w => /[\u4e00-\u9fff]/.test(w)) || "顯著";
-    if (!lib){
-      setStatusText(t().pinyinOff);
-      return;
-    }
-    setStatusText(t().pinyinTest(sample, pinyinOf(sample)));
   });
 
   btnClearText.addEventListener('click', () => {
