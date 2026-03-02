@@ -1,0 +1,14 @@
+Copyright (c) 2026 Dictation Helper authors.
+All rights reserved.
+
+This software and its source code are proprietary.
+
+No part of this software may be used, copied, modified, distributed,
+sublicensed, sold, rented, leased, or otherwise made available to any third
+party except under a separate written agreement from the copyright holder.
+
+This repository may include third-party components that are licensed under
+their own terms. See `THIRD_PARTY_NOTICES.md` and the files under
+`vendor/licenses/` for bundled third-party license information.
+
+Use of this software is also subject to the terms described in `TERMS.md`.

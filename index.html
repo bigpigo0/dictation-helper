@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover" />
   <title>Dictation Coach</title>
 
-  <!-- Pinyin library (Mandarin Pinyin). Online CDN; for offline, download and use local file instead. -->
-  <script src="https://unpkg.com/pinyin-pro@3.28.0/dist/index.js"></script>
-  <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <!-- Vendored runtime dependencies for offline/commercial deployment -->
+  <script src="./vendor/pinyin-pro/index.js"></script>
+  <script src="./vendor/tesseract/tesseract.min.js"></script>
+  <script src="./vendor/pdfjs/pdf.min.js"></script>
 
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -34,7 +34,7 @@
         </div>
 
         <div class="chips">
-          <div class="chip"><span id="versionChip">Beta v0.1.0</span></div>
+          <div class="chip"><span id="versionChip">Version v0.1.0</span></div>
           <div class="chip"><span id="pinyinDot" class="dot"></span><span id="pinyinChip">Pinyin: LOADING</span></div>
           <div class="chip"><span id="voiceDot" class="dot"></span><span id="voiceChip">Voice: LOADING</span></div>
         </div>
@@ -140,7 +140,7 @@
         <ol class="list" id="order"></ol>
 
         <div class="footerNote" id="t_footerNote">
-          Tip: If Pinyin shows OFF, the CDN may be blocked/offline. Download pinyin-pro.min.js and reference it locally for offline use.
+          This deployment uses local pinyin, OCR, and PDF runtime assets. If a component shows OFF, verify the vendor folder is complete.
         </div>
       </div>
     </div>
@@ -177,8 +177,8 @@
       statusLabel: "狀態",
       orderTitle: "朗讀順序",
       orderHint: "完成後 / 停止後會顯示",
-      footerNote: "提示：如果 Pinyin 顯示 OFF，可能離線/網絡被擋。可下載 pinyin-pro.min.js 放同一資料夾離線使用。",
-      versionLabel: (v) => `Beta ${v}`,
+      footerNote: "此部署使用本機拼音、OCR 及 PDF 元件；如顯示 OFF，請檢查 vendor 資料夾是否完整。",
+      versionLabel: (v) => `版本 ${v}`,
       start: "開始",
       pause: "暫停",
       resume: "繼續",
@@ -207,11 +207,11 @@
       cleared: "已清空文字",
       deduped: (n) => `已移除 ${n} 個重覆項目`,
       noDuplicates: "沒有重覆項目",
-      ocrNoApi: "OCR 載入失敗，請檢查網絡",
+      ocrNoApi: "OCR 元件未就緒，請檢查 vendor 資料夾",
       ocrFailed: "圖片辨識失敗，請換另一張較清晰圖片",
       pdfReading: "正在讀取 PDF…",
       pdfDone: "已從 PDF 匯入文字",
-      pdfNoApi: "PDF 載入失敗，請檢查網絡",
+      pdfNoApi: "PDF 元件未就緒，請檢查 vendor 資料夾",
       pdfFailed: "PDF 匯入失敗，請換檔案再試",
       pdfOcrFallback: "PDF 文字層不足，改用 OCR…",
       markedWrong: (w, n) => `已標記錯題：${w}（共 ${n}）`,
@@ -239,8 +239,8 @@
       statusLabel: "状态",
       orderTitle: "朗读顺序",
       orderHint: "完成后 / 停止后会显示",
-      footerNote: "提示：如果拼音显示 OFF，可能离线/被拦。可下载 pinyin-pro.min.js 放同一文件夹离线使用。",
-      versionLabel: (v) => `Beta ${v}`,
+      footerNote: "此部署使用本地拼音、OCR 及 PDF 组件；如显示 OFF，请检查 vendor 文件夹是否完整。",
+      versionLabel: (v) => `版本 ${v}`,
       start: "开始",
       pause: "暂停",
       resume: "继续",
@@ -267,11 +267,11 @@
       cleared: "已清空文字",
       deduped: (n) => `已移除 ${n} 个重复项目`,
       noDuplicates: "没有重复项目",
-      ocrNoApi: "OCR 加载失败，请检查网络",
+      ocrNoApi: "OCR 组件未就绪，请检查 vendor 文件夹",
       ocrFailed: "图片识别失败，请换更清晰的图片",
       pdfReading: "正在读取 PDF…",
       pdfDone: "已从 PDF 导入文字",
-      pdfNoApi: "PDF 加载失败，请检查网络",
+      pdfNoApi: "PDF 组件未就绪，请检查 vendor 文件夹",
       pdfFailed: "PDF 导入失败，请更换文件再试",
       pdfOcrFallback: "PDF 文本层不足，改用 OCR…",
       markedWrong: (w, n) => `已标记错题：${w}（共 ${n}）`,
@@ -299,8 +299,8 @@
       statusLabel: "Status",
       orderTitle: "Speaking order",
       orderHint: "Shown after finish / stop",
-      footerNote: "Tip: If Pinyin shows OFF, the CDN may be blocked/offline. Download pinyin-pro.min.js and reference it locally for offline use.",
-      versionLabel: (v) => `Beta ${v}`,
+      footerNote: "This deployment uses local pinyin, OCR, and PDF runtime assets. If a component shows OFF, verify the vendor folder is complete.",
+      versionLabel: (v) => `Version ${v}`,
       start: "Start",
       pause: "Pause",
       resume: "Resume",
@@ -327,11 +327,11 @@
       cleared: "Text cleared",
       deduped: (n) => `Removed ${n} duplicate items`,
       noDuplicates: "No duplicate items",
-      ocrNoApi: "OCR failed to load. Check your network.",
+      ocrNoApi: "OCR runtime is unavailable. Check that the vendor folder is complete.",
       ocrFailed: "Image OCR failed. Try a clearer image.",
       pdfReading: "Reading PDF...",
       pdfDone: "Imported text from PDF",
-      pdfNoApi: "PDF failed to load. Check your network.",
+      pdfNoApi: "PDF runtime is unavailable. Check that the vendor folder is complete.",
       pdfFailed: "PDF import failed. Try another file.",
       pdfOcrFallback: "PDF has little text layer, using OCR...",
       markedWrong: (w, n) => `Marked wrong: ${w} (${n})`,
@@ -346,6 +346,14 @@
 
   let currentLang = localStorage.getItem("dict_lang") || "zh-Hant";
   const APP_VERSION = "v0.1.0";
+  const VENDOR_ROOT = "./vendor";
+  const PDF_WORKER_SRC = new URL(`${VENDOR_ROOT}/pdfjs/pdf.worker.min.js`, window.location.href).toString();
+  const TESSERACT_OPTIONS = {
+    workerPath: new URL(`${VENDOR_ROOT}/tesseract/worker.min.js`, window.location.href).toString(),
+    corePath: new URL(`${VENDOR_ROOT}/tesseract/core`, window.location.href).toString(),
+    langPath: new URL(`${VENDOR_ROOT}/tesseract/lang`, window.location.href).toString(),
+    gzip: true
+  };
   function t(){ return I18N[currentLang] || I18N["zh-Hant"]; }
 
   // ---------- elements ----------
@@ -568,6 +576,13 @@
     const ok = !!getPinyinLib();
     pinyinChip.textContent = `Pinyin: ${ok ? "ON" : "OFF"}`;
     pinyinDot.className = "dot " + (ok ? "ok" : "");
+  }
+
+  function getTesseractOptions(logger){
+    return {
+      ...TESSERACT_OPTIONS,
+      logger
+    };
   }
 
   function pinyinOf(word){
@@ -871,14 +886,16 @@
 
     try{
       setStatusText(t().ocrReading);
-      const { data } = await window.Tesseract.recognize(file, ocrLanguage(), {
-        logger: (m) => {
+      const { data } = await window.Tesseract.recognize(
+        file,
+        ocrLanguage(),
+        getTesseractOptions((m) => {
           if (m?.status === "recognizing text" && Number.isFinite(m.progress)) {
             const pct = Math.max(0, Math.min(100, Math.round(m.progress * 100)));
             setStatusText(t().ocrProgress(pct));
           }
-        }
-      });
+        })
+      );
 
       const importedText = String(data?.text || "").replace(/\r/g, "\n").trim();
       if (!importedText){
@@ -905,7 +922,7 @@
       throw new Error("PDF API unavailable");
     }
     if (!pdfjsLib.GlobalWorkerOptions.workerSrc){
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+      pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC;
     }
 
     const ab = await file.arrayBuffer();
@@ -929,7 +946,7 @@
       throw new Error("OCR API unavailable");
     }
     if (!pdfjsLib.GlobalWorkerOptions.workerSrc){
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+      pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC;
     }
 
     const ab = await file.arrayBuffer();
@@ -946,14 +963,16 @@
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
       if (!blob) continue;
 
-      const { data } = await window.Tesseract.recognize(blob, ocrLanguage(), {
-        logger: (m) => {
+      const { data } = await window.Tesseract.recognize(
+        blob,
+        ocrLanguage(),
+        getTesseractOptions((m) => {
           if (m?.status === "recognizing text" && Number.isFinite(m.progress)){
             const pct = Math.max(0, Math.min(100, Math.round(m.progress * 100)));
             setStatusText(`${t().pdfOcrFallback} ${i}/${pdf.numPages} ${pct}%`);
           }
-        }
-      });
+        })
+      );
       const text = String(data?.text || "").replace(/\r/g, "\n").trim();
       if (text) ocrPages.push(text);
     }
