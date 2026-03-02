@@ -49,58 +49,76 @@
           <div class="hint" id="t_wordsHint">space / newline separated</div>
         </div>
 
-        <textarea id="words" placeholder="Example:
+        <div id="wordEditorPanel">
+          <textarea id="words" placeholder="Example:
 顯著
 變焦鏡頭
 發售"></textarea>
 
-        <div class="formRow">
-          <div class="field">
-            <label for="repeat" id="t_repeatLabel">Repeat</label>
-            <input id="repeat" type="hidden" value="2" />
-            <div class="seg repeatSeg" id="repeatSeg" role="group" aria-label="Repeat">
-              <button type="button" class="repeatBtn" data-repeat="1">1</button>
-              <button type="button" class="repeatBtn active" data-repeat="2">2</button>
-              <button type="button" class="repeatBtn" data-repeat="3">3</button>
-              <button type="button" class="repeatBtn" data-repeat="4">4</button>
+          <div class="formRow">
+            <div class="field">
+              <label for="repeat" id="t_repeatLabel">Repeat</label>
+              <input id="repeat" type="hidden" value="2" />
+              <div class="seg repeatSeg" id="repeatSeg" role="group" aria-label="Repeat">
+                <button type="button" class="repeatBtn" data-repeat="1">1</button>
+                <button type="button" class="repeatBtn active" data-repeat="2">2</button>
+                <button type="button" class="repeatBtn" data-repeat="3">3</button>
+                <button type="button" class="repeatBtn" data-repeat="4">4</button>
+              </div>
             </div>
-          </div>
-          <div class="field">
-            <label for="rate" id="t_rateLabel">Speech rate</label>
-            <div class="sliderWrap">
-              <input id="rate" class="iosRange" type="range" min="0.5" max="2" step="0.1" value="1" />
-              <div class="sliderMeta">
-                <span>0.5</span>
-                <span id="rateValue">1.0</span>
-                <span>2.0</span>
+            <div class="field">
+              <label for="rate" id="t_rateLabel">Speech rate</label>
+              <div class="sliderWrap">
+                <input id="rate" class="iosRange" type="range" min="0.5" max="2" step="0.1" value="1" />
+                <div class="sliderMeta">
+                  <span>0.5</span>
+                  <span id="rateValue">1.0</span>
+                  <span>2.0</span>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="voice" id="t_voiceLabel">Voice</label>
+              <select id="voice"></select>
+            </div>
+            <div class="field">
+              <label for="parseMode" id="t_modeLabel">Parse mode</label>
+              <select id="parseMode">
+                <option value="line" id="t_modeLine">Line mode</option>
+                <option value="word" id="t_modeWord">Word mode</option>
+              </select>
+            </div>
+            <div class="field sessionModeField">
+              <label id="t_sessionModeLabel">Session view</label>
+              <div class="toggleRow sessionModeRow">
+                <div class="switch">
+                  <div class="switchText">
+                    <b id="t_sessionModeTitle">Mode</b>
+                    <span id="sessionModeValue">Self-use mode</span>
+                  </div>
+                </div>
+                <div id="sessionModeSwitch" class="iosSwitch" role="switch" aria-checked="false" tabindex="0" title="Session mode toggle">
+                  <div class="knob"></div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="field">
-            <label for="voice" id="t_voiceLabel">Voice</label>
-            <select id="voice"></select>
-          </div>
-          <div class="field">
-            <label for="parseMode" id="t_modeLabel">Parse mode</label>
-            <select id="parseMode">
-              <option value="line" id="t_modeLine">Line mode</option>
-              <option value="word" id="t_modeWord">Word mode</option>
-            </select>
+
+          <!-- Shuffle toggle -->
+          <div class="toggleRow">
+            <div class="switch">
+              <div class="switchText">
+                <b id="t_shuffleTitle">Shuffle words</b>
+                <span id="t_shuffleDesc">Random order (OFF = follow input order)</span>
+              </div>
+            </div>
+            <div id="shuffleSwitch" class="iosSwitch on" role="switch" aria-checked="true" tabindex="0" title="Shuffle toggle">
+              <div class="knob"></div>
+            </div>
           </div>
         </div>
 
-        <!-- Shuffle toggle -->
-        <div class="toggleRow">
-          <div class="switch">
-            <div class="switchText">
-              <b id="t_shuffleTitle">Shuffle words</b>
-              <span id="t_shuffleDesc">Random order (OFF = follow input order)</span>
-            </div>
-          </div>
-          <div id="shuffleSwitch" class="iosSwitch on" role="switch" aria-checked="true" tabindex="0" title="Shuffle toggle">
-            <div class="knob"></div>
-          </div>
-        </div>
+        <div class="privacyBanner" id="kidsPrivacyBanner" hidden>Words are hidden during speaking in Kids mode.</div>
 
         <!-- Now speaking -->
         <div class="nowCard">
@@ -119,12 +137,12 @@
         </div>
 
         <div class="miniActions">
-          <button class="miniBtn" id="clearText">Clear text</button>
-          <button class="miniBtn" id="dedupe">Remove duplicates</button>
-          <button class="miniBtn" id="importImage">Import image</button>
-          <button class="miniBtn" id="importPdf">Import PDF</button>
+          <button class="miniBtn editorOnlyAction" id="clearText">Clear text</button>
+          <button class="miniBtn editorOnlyAction" id="dedupe">Remove duplicates</button>
+          <button class="miniBtn editorOnlyAction" id="importImage">Import image</button>
+          <button class="miniBtn editorOnlyAction" id="importPdf">Import PDF</button>
           <button class="miniBtn" id="markWrong">Mark wrong</button>
-          <button class="miniBtn" id="startRetry">Start retry</button>
+          <button class="miniBtn editorOnlyAction" id="startRetry">Start retry</button>
           <input id="imageInput" type="file" accept="image/*" hidden />
           <input id="pdfInput" type="file" accept="application/pdf,.pdf" hidden />
         </div>
@@ -171,6 +189,9 @@
       modeLabel: "練習模式",
       modeLine: "逐行模式",
       modeWord: "逐詞模式",
+      sessionModeLabel: "使用模式",
+      sessionSelf: "自用模式",
+      sessionKids: "小朋友模式",
       shuffleTitle: "隨機排序",
       shuffleDesc: "開啟 = 隨機；關閉 = 跟輸入次序",
       currentLabel: "目前朗讀",
@@ -220,7 +241,8 @@
       retryReady: (n) => `已建立錯題重溫清單（${n}）`,
       retryNoItems: "沒有已標記錯題",
       retryStarted: "開始重溫錯題",
-      wrongHint: "可按清單項目標記或取消錯題"
+      wrongHint: "可按清單項目標記或取消錯題",
+      kidsPrivacy: "小朋友模式朗讀中，已隱藏詞語輸入內容"
     },
     "zh-Hans": {
       title: "中文听写",
@@ -233,6 +255,9 @@
       modeLabel: "练习模式",
       modeLine: "逐行模式",
       modeWord: "逐词模式",
+      sessionModeLabel: "使用模式",
+      sessionSelf: "自用模式",
+      sessionKids: "儿童模式",
       shuffleTitle: "随机排序",
       shuffleDesc: "开启 = 随机；关闭 = 按输入顺序",
       currentLabel: "当前朗读",
@@ -280,7 +305,8 @@
       retryReady: (n) => `已生成错题重练清单（${n}）`,
       retryNoItems: "没有已标记错题",
       retryStarted: "开始重练错题",
-      wrongHint: "可点击列表项目标记或取消错题"
+      wrongHint: "可点击列表项目标记或取消错题",
+      kidsPrivacy: "儿童模式朗读中，已隐藏词语输入内容"
     },
     "en": {
       title: "Dictation Coach",
@@ -293,6 +319,9 @@
       modeLabel: "Practice mode",
       modeLine: "Line mode",
       modeWord: "Word mode",
+      sessionModeLabel: "Session mode",
+      sessionSelf: "Self-use mode",
+      sessionKids: "Kids mode",
       shuffleTitle: "Shuffle words",
       shuffleDesc: "ON = random; OFF = input order",
       currentLabel: "Now speaking",
@@ -340,7 +369,8 @@
       retryReady: (n) => `Retry list generated (${n})`,
       retryNoItems: "No marked wrong items",
       retryStarted: "Retry round started",
-      wrongHint: "Click an item in the list to mark or unmark it"
+      wrongHint: "Click an item in the list to mark or unmark it",
+      kidsPrivacy: "Kids mode is speaking. The input word list is hidden."
     }
   };
 
@@ -363,11 +393,15 @@
   const elRateValue = document.getElementById('rateValue');
   const elVoice = document.getElementById('voice');
   const elParseMode = document.getElementById('parseMode');
+  const sessionModeSwitch = document.getElementById('sessionModeSwitch');
+  const sessionModeValue = document.getElementById('sessionModeValue');
   const elOrder = document.getElementById('order');
   const elCounter = document.getElementById('counter');
   const elBar = document.getElementById('bar');
   const elCurrentWord = document.getElementById('currentWord');
   const elCurrentPinyin = document.getElementById('currentPinyin');
+  const elWordEditorPanel = document.getElementById('wordEditorPanel');
+  const elKidsPrivacyBanner = document.getElementById('kidsPrivacyBanner');
 
   const pinyinDot = document.getElementById('pinyinDot');
   const pinyinChip = document.getElementById('pinyinChip');
@@ -395,6 +429,7 @@
   let running = false;
   let cancelled = false;
   let parseMode = localStorage.getItem("dict_parse_mode") || "line";
+  let sessionMode = localStorage.getItem("dict_session_mode") || "self";
 
   let shuffleEnabled = (localStorage.getItem("dict_shuffle") ?? "1") === "1";
 
@@ -442,6 +477,8 @@
     setText("t_modeLabel", dict.modeLabel);
     setText("t_modeLine", dict.modeLine);
     setText("t_modeWord", dict.modeWord);
+    setText("t_sessionModeLabel", dict.sessionModeLabel);
+    setText("t_sessionModeTitle", dict.sessionModeLabel);
 
     setText("t_shuffleTitle", dict.shuffleTitle);
     setText("t_shuffleDesc", dict.shuffleDesc);
@@ -468,6 +505,7 @@
     updateRetryButtonLabel();
 
     elWords.placeholder = dict.placeholder;
+    elKidsPrivacyBanner.textContent = dict.kidsPrivacy;
 
     // lang segmented active
     document.querySelectorAll(".langBtn").forEach(btn => {
@@ -477,6 +515,7 @@
     // status re-render in new language
     renderStatus();
     renderOrder(); // keep list label/pinyin consistent
+    updateSessionModeUI();
   }
 
   function renderStatus(){
@@ -521,6 +560,22 @@
   function updateRetryButtonLabel(){
     const base = t().startRetry || "Start retry";
     btnStartRetry.textContent = retryItems.length ? `${base} (${retryItems.length})` : base;
+  }
+
+  function updateSessionModeUI(){
+    const hideEditor = sessionMode === "kids" && running;
+    sessionModeSwitch.classList.toggle("on", sessionMode === "kids");
+    sessionModeSwitch.setAttribute("aria-checked", sessionMode === "kids" ? "true" : "false");
+    sessionModeValue.textContent = sessionMode === "kids" ? t().sessionKids : t().sessionSelf;
+    document.body.classList.toggle("kidsModeActive", hideEditor);
+    elWordEditorPanel.hidden = hideEditor;
+    elKidsPrivacyBanner.hidden = !hideEditor;
+  }
+
+  function toggleSessionMode(){
+    sessionMode = sessionMode === "kids" ? "self" : "kids";
+    localStorage.setItem("dict_session_mode", sessionMode);
+    updateSessionModeUI();
   }
 
   function toggleWrongItem(item){
@@ -695,6 +750,7 @@
   async function run(){
     cancelled = false;
     running = true;
+    updateSessionModeUI();
     spokenOrder = [];
     currentItem = "";
     elOrder.innerHTML = "";
@@ -707,6 +763,7 @@
     if (!units.length){
       setStatusText(t().needWords);
       running = false;
+      updateSessionModeUI();
       return;
     }
 
@@ -747,6 +804,7 @@
       running = false;
       currentItem = "";
       window.speechSynthesis.cancel();
+      updateSessionModeUI();
     }
 
     renderOrder();
@@ -1043,6 +1101,14 @@
     rebuildPreview();
   });
 
+  sessionModeSwitch.addEventListener('click', toggleSessionMode);
+  sessionModeSwitch.addEventListener('keydown', (e) => {
+    if (e.key === " " || e.key === "Enter"){
+      e.preventDefault();
+      toggleSessionMode();
+    }
+  });
+
   elRate.addEventListener('input', updateSliderLabels);
   repeatSeg.addEventListener('click', (e) => {
     const btn = e.target.closest(".repeatBtn");
@@ -1053,11 +1119,13 @@
 
   // ---------- init ----------
   if (parseMode !== "line" && parseMode !== "word") parseMode = "line";
+  if (sessionMode !== "kids" && sessionMode !== "self") sessionMode = "self";
   updateShuffleUI();
   updatePinyinChip();
   updateRepeatUI();
   updateSliderLabels();
   elParseMode.value = parseMode;
+  updateSessionModeUI();
   window.addEventListener("load", updatePinyinChip);
 
   // voices load async in many browsers

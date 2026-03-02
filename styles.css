@@ -341,6 +341,22 @@ select option, select optgroup{
       align-items:center;
       justify-content:space-between;
     }
+    .privacyBanner{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px dashed rgba(45,212,191,0.45);
+      background: rgba(45,212,191,0.12);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .sessionModeField{
+      grid-column: 1 / -1;
+    }
+    .sessionModeRow{
+      margin-top: 0;
+    }
 
     .switch{
       display:flex;
@@ -459,6 +475,13 @@ select option, select optgroup{
       gap: 10px;
       flex-wrap:wrap;
       margin-top: 10px;
+    }
+    .kidsModeActive .editorOnlyAction{
+      display: none;
+    }
+    .kidsModeActive .nowWord,
+    .kidsModeActive .nowPinyin{
+      visibility: hidden;
     }
     .miniBtn{
       border-radius: 12px;
