@@ -78,6 +78,17 @@
               </div>
             </div>
             <div class="field">
+              <label for="wordPause" id="t_wordPauseLabel">Pause between words (sec)</label>
+              <div class="sliderWrap">
+                <input id="wordPause" class="iosRange" type="range" min="0" max="10" step="0.1" value="2.0" />
+                <div class="sliderMeta">
+                  <span>0.0</span>
+                  <span id="wordPauseValue">2.0</span>
+                  <span>10.0</span>
+                </div>
+              </div>
+            </div>
+            <div class="field">
               <label for="voice" id="t_voiceLabel">Voice</label>
               <select id="voice"></select>
             </div>
@@ -185,6 +196,7 @@
       wordsHint: "空格 / 換行分隔",
       repeatLabel: "重複次數",
       rateLabel: "語速",
+      wordPauseLabel: "詞語間停頓（秒）",
       voiceLabel: "語音 Voice",
       modeLabel: "練習模式",
       modeLine: "逐行模式",
@@ -251,6 +263,7 @@
       wordsHint: "空格 / 换行分隔",
       repeatLabel: "重复次数",
       rateLabel: "语速",
+      wordPauseLabel: "词语间停顿（秒）",
       voiceLabel: "语音 Voice",
       modeLabel: "练习模式",
       modeLine: "逐行模式",
@@ -315,6 +328,7 @@
       wordsHint: "Separated by spaces / new lines",
       repeatLabel: "Repeat",
       rateLabel: "Speech rate",
+      wordPauseLabel: "Pause between words (sec)",
       voiceLabel: "Voice",
       modeLabel: "Practice mode",
       modeLine: "Line mode",
@@ -391,6 +405,8 @@
   const elRepeat = document.getElementById('repeat');
   const elRate = document.getElementById('rate');
   const elRateValue = document.getElementById('rateValue');
+  const elWordPause = document.getElementById('wordPause');
+  const elWordPauseValue = document.getElementById('wordPauseValue');
   const elVoice = document.getElementById('voice');
   const elParseMode = document.getElementById('parseMode');
   const sessionModeSwitch = document.getElementById('sessionModeSwitch');
@@ -432,6 +448,9 @@
   let sessionMode = localStorage.getItem("dict_session_mode") || "self";
 
   let shuffleEnabled = (localStorage.getItem("dict_shuffle") ?? "1") === "1";
+  const storedWordPause = parseFloat(localStorage.getItem("dict_word_pause") ?? "2.0");
+  const wordPauseSec = Number.isFinite(storedWordPause) ? Math.max(0, Math.min(10, storedWordPause)) : 2.0;
+  elWordPause.value = wordPauseSec.toFixed(1);
 
   let plannedOrder = [];   // order for this session (shuffled or input order)
   let spokenOrder = [];    // actual spoken sequence
@@ -452,6 +471,7 @@
 
   function updateSliderLabels(){
     elRateValue.textContent = Number(elRate.value || "1").toFixed(1);
+    elWordPauseValue.textContent = Number(elWordPause.value || "2.0").toFixed(1);
   }
 
   function updateRepeatUI(){
@@ -473,6 +493,7 @@
 
     setText("t_repeatLabel", dict.repeatLabel);
     setText("t_rateLabel", dict.rateLabel);
+    setText("t_wordPauseLabel", dict.wordPauseLabel);
     setText("t_voiceLabel", dict.voiceLabel);
     setText("t_modeLabel", dict.modeLabel);
     setText("t_modeLine", dict.modeLine);
@@ -758,6 +779,7 @@
     const units = parseUnits(elWords.value);
     const repeat = Math.max(1, parseInt(elRepeat.value || "1", 10));
     const rate = Math.min(2, Math.max(0.5, parseFloat(elRate.value || "1")));
+    const wordPauseMs = Math.round(Math.max(0, Math.min(10, parseFloat(elWordPause.value || "2.0"))) * 1000);
     const voice = selectedVoice();
 
     if (!units.length){
@@ -795,7 +817,7 @@
           await speakOnce(w, { voice, rate });
           await sleep(420);
         }
-        await sleep(650);
+        await sleep(wordPauseMs);
       }
     } catch (err){
       console.error(err);
@@ -1110,6 +1132,10 @@
   });
 
   elRate.addEventListener('input', updateSliderLabels);
+  elWordPause.addEventListener('input', () => {
+    updateSliderLabels();
+    localStorage.setItem("dict_word_pause", Number(elWordPause.value || "2.0").toFixed(1));
+  });
   repeatSeg.addEventListener('click', (e) => {
     const btn = e.target.closest(".repeatBtn");
     if (!btn) return;
